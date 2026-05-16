@@ -22,6 +22,12 @@ class Settings(BaseSettings):
     ADMIN_NAME: str = "Super Admin"
     ADMIN_PASSWORD: str = "admin123"
 
+    # Image Processing
+    SOURCE_DIR: str = "images"
+    OUTPUT_DIR: str = "cropped_dataset"
+    CROP_SIZE: int = 224
+    GREEN_THRESHOLD: float = 30.0
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 settings = Settings()

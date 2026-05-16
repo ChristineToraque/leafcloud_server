@@ -68,6 +68,7 @@ For detailed guides, please refer to our documentation pages:
 7.  **[Raw Daily Readings](docs/page-7-raw-daily-readings.md)** - Details on the raw sensor data collection.
 8.  **[Experiments Model](docs/page-8-experiments.md)** - Details on the experimental configuration schema.
 9.  **[Image Crops](docs/page-9-image-crops.md)** - Details on the segmented plant images used for AI.
+10. **[NPK Predictions](docs/page-10-npk-predictions.md)** - Details on the numerical AI estimation outputs.
 
 ---
 

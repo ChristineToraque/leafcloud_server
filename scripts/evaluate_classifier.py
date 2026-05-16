@@ -72,7 +72,7 @@ def get_val_df():
     df = pd.read_sql(query, engine)
     # Match the split logic from train_v4
     df_shuffled = df.sample(frac=1, random_state=42).reset_index(drop=True)
-    split = int(len(df_shuffled) * 0.8)
+    split = int(len(df_shuffled) * VAL_SPLIT)
     val_df = df_shuffled.iloc[split:].reset_index(drop=True)
     return val_df
 
@@ -129,4 +129,3 @@ if __name__ == "__main__":
     y_true = synced_df['bucket_label'].values
 
     print_metrics(y_true, y_pred_classes)
-

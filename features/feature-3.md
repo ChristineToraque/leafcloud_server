@@ -1,6 +1,7 @@
 The short answer is **not directly** in its current form.
 
-Your `train_v4_sensor_boost.py` is a **Classifier**, not a **Regressor**. Here’s what that means:
+Your `nutrient_classifier.py` is a **Classifier**, not a **Regressor**.
+ Here’s what that means:
 
 ### 1. Classification (What is currently implemented)
 The model's output is four "buckets": **Water, NPK, Micro, or Mix**.
@@ -23,3 +24,5 @@ If your goal is to get exact concentration levels (numerical estimation):
 2.  **Hybrid Model:** You can make the model **Multi-Output**—one branch to predict the Bucket (Classification) and one branch to predict NPK levels (Regression).
 
 **Summary:** Currently, `train_v4` is only good at identifying **what** kind of fertilizer is in the water, but it cannot tell you **how much** N, P, or K is exactly in it.
+
+[Next](./feature-4.md)

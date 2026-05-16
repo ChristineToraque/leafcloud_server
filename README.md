@@ -41,6 +41,12 @@ export PYTHONPATH=$PYTHONPATH:.
 alembic upgrade head
 ```
 
+#### Common Migration Commands:
+- **Apply migrations**: `export PYTHONPATH=$PYTHONPATH:. && alembic upgrade head`
+- **Create new migration**: `export PYTHONPATH=$PYTHONPATH:. && alembic revision --autogenerate -m "description"`
+- **Check current version**: `export PYTHONPATH=$PYTHONPATH:. && alembic current`
+- **View history**: `export PYTHONPATH=$PYTHONPATH:. && alembic history`
+
 ### 5. Start the Server
 ```bash
 uvicorn app.main:app --reload

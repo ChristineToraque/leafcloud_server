@@ -58,6 +58,7 @@ For detailed guides, please refer to our documentation pages:
 3.  **[Migrations (Alembic)](docs/page-3-migrations-alembic.md)** - How to manage schema changes.
 4.  **[Network Discovery](docs/page-4-zeroconf-discovery.md)** - Details on Zeroconf/mDNS implementation.
 5.  **[Developer Guide](docs/page-5-developer-guide.md)** - **Start here** for architecture and contribution workflows.
+6.  **[Daily Readings Model](docs/page-6-daily-readings.md)** - Details on the sensor data schema.
 
 ---
 

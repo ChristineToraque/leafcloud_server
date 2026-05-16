@@ -15,11 +15,20 @@ The execution starts at the bottom of the script.
 ---
 
 ## 2. Data Acquisition: `get_dataset()`
-This block handles the bridge between the database and the AI.
+This block acts as an orchestrator for the data pipeline, broken down into four specialized functions for clarity and maintainability:
 
-*   **The Query**: It performs a 3-way join: `image_crops` ➡️ `cleaned_daily_readings` ➡️ `experiments`. This ensures every image is paired with its specific pH, EC, and Water Temp.
-*   **Normalization**: Raw sensor values (e.g., pH 5.5 to 7.0) are scaled between **0 and 1**. Neural networks perform significantly better with small, normalized numbers.
-*   **Sample Weighting**: If you have 5,000 "Water" samples but only 1,000 "Micro" samples, the model might become biased. This block calculates "Sample Weights" so the model pays 5x more attention to the rarer categories.
+1.  **`fetch_raw_data(engine)`**: 
+    - Performs the 3-way SQL join: `image_crops` ➡️ `cleaned_daily_readings` ➡️ `experiments`.
+    - This ensures every image is paired with its specific pH, EC, and Water Temp.
+2.  **`filter_missing_images(df)`**: 
+    - Verifies each file path on the disk before training begins.
+    - Prevents the training from crashing if an image record exists in the DB but the file was deleted.
+3.  **`apply_normalization(df)`**: 
+    - Scales sensor values (e.g., pH 5.5 to 7.0) to a **0 to 1** range.
+    - Neural networks perform significantly better with small, normalized numbers.
+4.  **`calculate_sample_weights(df)`**: 
+    - Handles "Class Imbalance." 
+    - If you have 5,000 "Water" samples but only 1,000 "Micro" samples, it assigns higher weights to "Micro" so the AI pays more attention to it.
 
 ---
 

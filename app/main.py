@@ -3,6 +3,7 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from . import models, schemas, auth, database
 from .database import engine, get_db
+from .discovery import discovery_service
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -13,6 +14,19 @@ load_dotenv()
 app = FastAPI(title="LeafCloud Server V2 API")
 
 @app.on_event("startup")
+def start_up_tasks():
+    # Seed admin user
+    seed_admin_user()
+    
+    # Start Zeroconf discovery
+    port = int(os.getenv("PORT", 8000))
+    discovery_service.start(port=port)
+
+@app.on_event("shutdown")
+def shutdown_tasks():
+    # Stop Zeroconf discovery
+    discovery_service.stop()
+
 def seed_admin_user():
     db = database.SessionLocal()
     try:

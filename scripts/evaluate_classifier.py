@@ -11,14 +11,12 @@ from sklearn.metrics import (
     mean_squared_error, r2_score
 )
 from tqdm import tqdm
-from dotenv import load_dotenv
-
-load_dotenv()
+from app.core.config import settings
 
 # ==========================================
 # CONFIGURATION
 # ==========================================
-DB_URL        = os.getenv("DATABASE_URL", "")
+DB_URL        = settings.DATABASE_URL
 IMG_SIZE      = (224, 224)
 BATCH_SIZE    = 32
 RANDOM_STATE  = 42

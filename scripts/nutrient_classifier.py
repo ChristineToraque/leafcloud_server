@@ -13,14 +13,12 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping
 from sqlalchemy import create_engine
 from tqdm import tqdm
-from dotenv import load_dotenv
-
-load_dotenv()
+from app.core.config import settings
 
 # ==========================================
 # CONFIGURATION - SENSOR-BOOSTED VERSION
 # ==========================================
-DB_URL = os.getenv('DATABASE_URL', '')
+DB_URL = settings.DATABASE_URL
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 32
 TIMESTAMP = datetime.now().strftime('%Y%m%d_%H%M')

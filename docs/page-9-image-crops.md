@@ -10,13 +10,13 @@ The `image_crops` table stores references to specific segmented or cropped image
 | Column | Type | Description |
 | :--- | :--- | :--- |
 | `id` | Integer | Unique identifier (Primary Key). |
-| `daily_reading_id` | Integer | Foreign key linking to the parent `daily_readings` record. |
+| `daily_reading_id` | BigInteger | Foreign key linking to the parent `cleaned_daily_readings` record. |
 | `crop_path` | String(255) | File system path to the saved image crop. |
 | `timestamp` | DateTime (TZ) | Creation time (Defaults to `now()`). |
 | `crop_type` | String(50) | Type of crop (Defaults to `grid`). |
 
 ## 3. Relationships
-- **Daily Reading**: Each crop belongs to a specific daily reading. This relationship is critical because it links the plant's visual state to the chemical sensor data (pH, EC, etc.) collected at the same time.
+- **Cleaned Daily Reading**: Each crop belongs to a specific cleaned daily reading. This relationship is critical because it links the plant's visual state to the cleaned chemical sensor data (pH, EC, etc.) used in the AI training pipeline.
 
 ## 4. Role in AI Training
 In the `nutrient_classifier.py` script, the `image_crops` table is joined with the `cleaned_daily_readings` table. The model uses the `crop_path` to load the pixel data and the sensor data from the reading to perform multi-modal classification.

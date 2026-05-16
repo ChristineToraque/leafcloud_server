@@ -69,6 +69,7 @@ For detailed guides, please refer to our documentation pages:
 8.  **[Experiments Model](docs/page-8-experiments.md)** - Details on the experimental configuration schema.
 9.  **[Image Crops](docs/page-9-image-crops.md)** - Details on the segmented plant images used for AI.
 10. **[NPK Predictions](docs/page-10-npk-predictions.md)** - Details on the numerical AI estimation outputs.
+11. **[Image Crop Progress](docs/page-11-image-crop-progress.md)** - Task tracking for image processing.
 
 ---
 

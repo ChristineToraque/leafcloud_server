@@ -5,3 +5,4 @@ from .daily_reading import DailyReading
 from .experiment import Experiment
 from .image_crop import ImageCrop
 from .npk_prediction import NPKPrediction
+from .crop_progress import ImageCropProgress

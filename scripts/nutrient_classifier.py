@@ -34,10 +34,8 @@ SENSOR_NORM = {
 LABEL_LIST = ['Water', 'NPK', 'Micro', 'Mix']
 LABEL_TO_IDX = {l: i for i, l in enumerate(LABEL_LIST)}
 
-def get_dataset():
-    print('🔌 Connecting to Database...')
-    engine = create_engine(DB_URL)
-
+def fetch_raw_data(engine) -> pd.DataFrame:
+    """Fetches the linked crops, readings, and experiments from the database."""
     query = """
     SELECT
         ic.crop_path  AS image_path,
@@ -52,7 +50,10 @@ def get_dataset():
     """
     df = pd.read_sql(query, engine)
     print(f'  Fetched {len(df)} crop records')
+    return df
 
+def filter_missing_images(df: pd.DataFrame) -> pd.DataFrame:
+    """Removes records where the image file is not accessible on disk."""
     print('🔍 Verifying image files on disk...')
     def is_accessible(path):
         try:
@@ -66,21 +67,41 @@ def get_dataset():
     missing = (~df['exists']).sum()
     if missing:
         print(f'⚠️  {missing} inaccessible files removed.')
-    df = df[df['exists']].drop(columns=['exists']).reset_index(drop=True)
+    return df[df['exists']].drop(columns=['exists']).reset_index(drop=True)
 
-    print(f'✅ {len(df)} images found.')
-
+def apply_normalization(df: pd.DataFrame) -> pd.DataFrame:
+    """Scales sensor data to 0-1 range based on predefined thresholds."""
     for col, (lo, hi) in SENSOR_NORM.items():
         df[col] = (df[col].clip(lo, hi) - lo) / (hi - lo)
+    return df
 
-    # Encode labels for classification
-    df['label_idx'] = df['bucket_label'].map(LABEL_TO_IDX)
-
-    counts     = df['bucket_label'].value_counts()
-    n_total    = len(df)
-    n_classes  = len(counts)
+def calculate_sample_weights(df: pd.DataFrame) -> pd.DataFrame:
+    """Calculates weights to handle class imbalance during training."""
+    counts = df['bucket_label'].value_counts()
+    n_total = len(df)
+    n_classes = len(counts)
     weight_map = {label: n_total / (n_classes * count) for label, count in counts.items()}
     df['sample_weight'] = df['bucket_label'].map(weight_map)
+    return df
+
+def get_dataset():
+    print('🔌 Connecting to Database...')
+    engine = create_engine(DB_URL)
+
+    df = fetch_raw_data(engine)
+    df = filter_missing_images(df)
+
+    if df.empty:
+        return df
+
+    print(f'✅ {len(df)} valid images found.')
+
+    df = apply_normalization(df)
+    
+    # Encode labels for classification
+    df['label_idx'] = df['bucket_label'].map(LABEL_TO_IDX)
+    
+    df = calculate_sample_weights(df)
 
     return df
 

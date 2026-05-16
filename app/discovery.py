@@ -53,7 +53,7 @@ class DiscoveryService:
         )
 
         self.aiozc = AsyncZeroconf(ip_version=IPVersion.V4Only)
-        await self.aiozc.register_service(self.service_info)
+        await self.aiozc.async_register_service(self.service_info)
         
         logger.info(f"Zeroconf service registered: {registration_name} at {local_ip}:{port}")
 
@@ -63,7 +63,7 @@ class DiscoveryService:
         """
         if self.aiozc:
             if self.service_info:
-                await self.aiozc.unregister_service(self.service_info)
+                await self.aiozc.async_unregister_service(self.service_info)
             await self.aiozc.close()
             self.aiozc = None
             self.service_info = None

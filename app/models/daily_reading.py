@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, func
+from sqlalchemy import Column, Integer, String, Float, DateTime, func, ForeignKey
 from app.core.database import Base
 
 class DailyReading(Base):
@@ -11,4 +11,4 @@ class DailyReading(Base):
     ec = Column(Float)
     water_temp = Column(Float)
     status = Column(String(50))
-    experiment_id = Column(Integer)
+    experiment_id = Column(Integer, ForeignKey("experiments.id"))

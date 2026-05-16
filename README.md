@@ -66,6 +66,7 @@ For detailed guides, please refer to our documentation pages:
 5.  **[Developer Guide](docs/page-5-developer-guide.md)** - **Start here** for architecture and contribution workflows.
 6.  **[Daily Readings Model](docs/page-6-daily-readings.md)** - Details on the sensor data schema.
 7.  **[Raw Daily Readings](docs/page-7-raw-daily-readings.md)** - Details on the raw sensor data collection.
+8.  **[Experiments Model](docs/page-8-experiments.md)** - Details on the experimental configuration schema.
 
 ---
 

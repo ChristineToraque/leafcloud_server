@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Create tables
-models.Base.metadata.create_all(bind=engine)
+# Create tables (Commented out because we use Alembic for migrations)
+# models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="LeafCloud Server V2 API")
 

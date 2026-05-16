@@ -1,20 +1,20 @@
 # PostgreSQL Database Setup: `leafcloud3`
 
-Kini nga dokumento nag-detalye sa pag-setup ug migration gikan sa SQLite ngadto sa **PostgreSQL**.
+This document details the setup and migration from SQLite to **PostgreSQL**.
 
-## 1. Unsa ang gibuhat?
-Nag-transition kita gikan sa file-based database (SQLite) ngadto sa usa ka mas powerful nga relational database management system (RDBMS) nga mao ang PostgreSQL.
+## 1. What was done?
+We transitioned from a file-based database (SQLite) to a more powerful relational database management system (RDBMS), PostgreSQL.
 
-### Mga kausaban:
-*   Nag-create og bag-ong database sa PostgreSQL nga ginganlan og `leafcloud3`.
-*   Gi-update ang `.env` file aron gamiton ang PostgreSQL connection string.
-*   Gi-configure ang SQLAlchemy engine aron mo-support sa PostgreSQL driver (`psycopg2`).
+### Changes:
+*   Created a new PostgreSQL database named `leafcloud3`.
+*   Updated the `.env` file to use the PostgreSQL connection string.
+*   Configured the SQLAlchemy engine to support the PostgreSQL driver (`psycopg2`).
 
 ---
 
 ## 2. Configuration Details
 
-Ang mga credentials nga gi-set sa `.env` para sa local development:
+The credentials set in the `.env` file for local development:
 
 *   **DB_USER**: `fil`
 *   **DB_PASSWORD**: (none)
@@ -25,39 +25,65 @@ Ang mga credentials nga gi-set sa `.env` para sa local development:
 
 ---
 
-## 3. Giunsa pag-setup ang Database?
+## 3. How to Setup the Database
 
-### A. Manual Creation (kung wala pa)
-Kung kinahanglan nimo i-recreate ang database manually:
+### A. Manual Creation (if needed)
+If you need to recreate the database manually:
 ```bash
 psql -U fil -d postgres -c "CREATE DATABASE leafcloud3;"
 ```
 
-### B. Automatic Table Creation
-Inig start sa FastAPI server, ang SQLAlchemy automatic nga mo-create sa mga tables (sama sa `users` table) kung wala pa kini sa `leafcloud3` database. Kini tungod sa kini nga code sa `app/main.py`:
-```python
-models.Base.metadata.create_all(bind=engine)
+### B. Database Query Utility Script
+We added a utility script at `scripts/run-query.sh` to easily execute SQL queries and save results to a file.
+
+**How to use:**
+```bash
+./scripts/run-query.sh "SELECT * FROM users;"
+```
+*Results are saved to `database-query.result`.*
+
+To append to results:
+```bash
+./scripts/run-query.sh --append "SELECT count(*) FROM users;"
 ```
 
----
+### C. Database Migrations (Alembic)
+Instead of automatic table creation, we now use **Alembic** for more controlled management of the database schema.
 
-## 4. Unsaon Pag-verify?
+**How to run migrations:**
+1.  **Check current status**:
+    ```bash
+    export PYTHONPATH=$PYTHONPATH:.
+    ~/.env_leafcloud/bin/alembic current
+    ```
+2.  **Upgrade to latest version**:
+    ```bash
+    export PYTHONPATH=$PYTHONPATH:.
+    ~/.env_leafcloud/bin/alembic upgrade head
+    ```
+3.  **Create new migration** (if there are changes in `models.py`):
+    ```bash
+    export PYTHONPATH=$PYTHONPATH:.
+    ~/.env_leafcloud/bin/alembic revision --autogenerate -m "Description of changes"
+    ```
+
+### D. Automatic Admin Seeding
 
 1.  **Start the Server**:
     ```bash
     ~/.env_leafcloud/bin/uvicorn app.main:app --reload
     ```
 2.  **Check PostgreSQL Tables**:
-    Mahimo nimo i-check kung na-create ba ang tables gamit ang `psql`:
+    You can check if tables were created using `psql`:
     ```bash
     psql -U fil -d leafcloud3 -c "\dt"
     ```
 3.  **Test Login**:
-    Inig start sa server, i-seed gihapon niini ang default admin user sa PostgreSQL. Mahimo nimo i-test ang login endpoint gamit ang `curl` (tan-awa ang `docs/page-1-login.md`).
+    When the server starts, it will still seed the default admin user in PostgreSQL. You can test the login endpoint using `curl` (see `docs/page-1-login.md`).
 
 ---
 
-## 5. Nganong PostgreSQL?
-*   **Concurrency**: Mas maayo ang PostgreSQL sa pag-handle og daghang simultaneous users/requests.
-*   **Data Integrity**: Mas stricto ang PostgreSQL sa types ug constraints.
-*   **Scalability**: Mas sayon i-scale sa production environment (sama sa Cloud SQL o AWS RDS).
+## 5. Why PostgreSQL?
+*   **Concurrency**: PostgreSQL is better at handling multiple simultaneous users/requests.
+*   **Data Integrity**: PostgreSQL is stricter with types and constraints.
+*   **Scalability**: Easier to scale in a production environment (like Cloud SQL or AWS RDS).

@@ -1,54 +1,54 @@
 # Authentication System: `POST /auth/login`
 
-Kini nga dokumento nag-explain sa authentication system nga gi-implementar para sa LeafCloud Server V2.
+This document explains the authentication system implemented for LeafCloud Server V2.
 
-## 1. Overview sa Implementasyon
-Gi-implementar nato ang usa ka robust ug secure nga authentication system gamit ang **FastAPI**, **JWT (JSON Web Tokens)**, ug **Bcrypt** para sa password hashing.
+## 1. Implementation Overview
+We have implemented a robust and secure authentication system using **FastAPI**, **JWT (JSON Web Tokens)**, and **Bcrypt** for password hashing.
 
 ### Key Components:
-*   **Security**: Gigamit ang `passlib` (bcrypt) para sa hashing ug `python-jose` para sa JWT operations.
-*   **Database**: Gigamit ang SQLAlchemy para sa `User` model.
-*   **Validation**: Gigamit ang Pydantic (lakip ang `email-validator`) para sa type safety ug validation.
-*   **Environment**: Ang mga sensitive data (secrets, admin credentials) gi-manage pinaagi sa `.env` file.
+*   **Security**: Uses `passlib` (bcrypt) for hashing and `python-jose` for JWT operations.
+*   **Database**: Uses SQLAlchemy for the `User` model.
+*   **Validation**: Uses Pydantic (including `email-validator`) for type safety and validation.
+*   **Environment**: Sensitive data (secrets, admin credentials) are managed via the `.env` file.
 
 ---
 
-## 2. Giunsa kini pag-work? (The Process)
+## 2. How it Works (The Process)
 
-Kung ang usa ka user mo-access sa `/auth/login` endpoint:
+When a user accesses the `/auth/login` endpoint:
 
-1.  **Request Validation**: I-check sa Pydantic kung ang JSON body naay valid nga `email` format ug `password` string.
-2.  **User Lookup**: Pangitaon sa database (`users` table) ang user nga naay matching email.
+1.  **Request Validation**: Pydantic checks if the JSON body has a valid `email` format and `password` string.
+2.  **User Lookup**: The server searches the database (`users` table) for a user with the matching email.
 3.  **Password Verification**: 
-    *   Kung naay nakit-an nga user, i-compare ang plain-text password gikan sa request ngadto sa `hashed_password` nga naa sa database gamit ang `bcrypt`.
-    *   Kung dili match o wala ang user, mo-return og `401 Unauthorized`.
+    *   If a user is found, the plain-text password from the request is compared to the `hashed_password` in the database using `bcrypt`.
+    *   If they don't match or the user doesn't exist, a `401 Unauthorized` error is returned.
 4.  **JWT Generation**: 
-    *   Kung successful ang verification, ang server mo-create og JWT access token.
-    *   Ang token naay `sub` (subject/email), `user_id`, ug `exp` (expiration time).
-5.  **Response**: I-return ang JSON response nga naay status, ang actual token, ug ang basic user info.
+    *   If verification is successful, the server creates a JWT access token.
+    *   The token contains the `sub` (subject/email), `user_id`, and `exp` (expiration time).
+5.  **Response**: A JSON response is returned containing the status, the actual token, and basic user information.
 
 ---
 
 ## 3. Automatic Admin Seeding
-Para sa initial setup, naay **startup event** sa `app/main.py`. 
+For initial setup, there is a **startup event** in `app/main.py`.
 
-*   Inig sugod sa server, i-check niini kung naa na ba'y admin user sa database.
-*   Kung wala pa, automatic kini nga mo-create og admin account base sa `.env` settings:
+*   When the server starts, it checks if an admin user already exists in the database.
+*   If not, it automatically creates an admin account based on the `.env` settings:
     *   **Email**: `admin@leafcloud.com`
     *   **Name**: `Super Admin`
     *   **Password**: `admin123`
 
 ---
 
-## 4. Unsaon Pag-gamit (How to Use)
+## 4. How to Use
 
-### A. Pag-start sa Server
-Siguroha nga gamiton ang saktong environment:
+### A. Starting the Server
+Ensure you are using the correct environment:
 ```bash
 ~/.env_leafcloud/bin/uvicorn app.main:app --reload
 ```
 
-### B. Pag-test sa Login (via cURL)
+### B. Testing Login (via cURL)
 ```bash
 curl -X POST "http://localhost:8000/auth/login" \
      -H "Content-Type: application/json" \
@@ -78,9 +78,9 @@ curl -X POST "http://localhost:8000/auth/login" \
 
 *   **Endpoint**: `POST /auth/login`
 *   **Files Involved**:
-    *   `app/main.py`: Route handler ug seeding logic.
-    *   `app/auth.py`: JWT creation ug password verification logic.
-    *   `app/models.py`: Database schema para sa `User`.
-    *   `app/schemas.py`: Request (`LoginRequest`) ug Response (`LoginResponse`) schemas.
-    *   `app/database.py`: DB engine ug session setup.
-*   **Requirements**: Tan-awa ang `requirements.txt` para sa listahan sa dependencies.
+    *   `app/main.py`: Route handler and seeding logic.
+    *   `app/auth.py`: JWT creation and password verification logic.
+    *   `app/models.py`: Database schema for the `User`.
+    *   `app/schemas.py`: Request (`LoginRequest`) and Response (`LoginResponse`) schemas.
+    *   `app/database.py`: DB engine and session setup.
+*   **Requirements**: See `requirements.txt` for the list of dependencies.

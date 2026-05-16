@@ -23,3 +23,7 @@ sql_app.db
 ehthumbs.db
 Thumbs.db
 database-query.result
+images
+cropped_dataset
+exports
+features

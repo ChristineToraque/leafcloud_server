@@ -7,3 +7,4 @@ from .image_crop import ImageCrop
 from .npk_prediction import NPKPrediction
 from .crop_progress import ImageCropProgress
 from .action_log import AutomatedActionLog
+from .tank_config import TankConfig

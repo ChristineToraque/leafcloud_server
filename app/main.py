@@ -1,15 +1,9 @@
-import os
-from fastapi import FastAPI, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from . import models, schemas, auth, database
-from .database import engine, get_db
-from .discovery import discovery_service
-from dotenv import load_dotenv
-
-load_dotenv()
-
-# Create tables (Commented out because we use Alembic for migrations)
-# models.Base.metadata.create_all(bind=engine)
+from fastapi import FastAPI
+from app.core.config import settings
+from app.core import database, security
+from app.models import user as user_models
+from app.api.v1.api import api_router
+from app.services.discovery import discovery_service
 
 app = FastAPI(title="LeafCloud Server V2 API")
 
@@ -19,8 +13,7 @@ async def start_up_tasks():
     seed_admin_user()
     
     # Start Zeroconf discovery
-    port = int(os.getenv("PORT", 8000))
-    await discovery_service.start(port=port)
+    await discovery_service.start(port=settings.PORT)
 
 @app.on_event("shutdown")
 async def shutdown_tasks():
@@ -30,15 +23,15 @@ async def shutdown_tasks():
 def seed_admin_user():
     db = database.SessionLocal()
     try:
-        admin_email = os.getenv("ADMIN_EMAIL", "admin@leafcloud.com")
-        admin_user = db.query(models.User).filter(models.User.email == admin_email).first()
+        admin_email = settings.ADMIN_EMAIL
+        admin_user = db.query(user_models.User).filter(user_models.User.email == admin_email).first()
         
         if not admin_user:
             print(f"Seeding admin user: {admin_email}")
-            hashed_password = auth.get_password_hash(os.getenv("ADMIN_PASSWORD", "admin123"))
-            new_admin = models.User(
+            hashed_password = security.get_password_hash(settings.ADMIN_PASSWORD)
+            new_admin = user_models.User(
                 email=admin_email,
-                name=os.getenv("ADMIN_NAME", "Super Admin"),
+                name=settings.ADMIN_NAME,
                 hashed_password=hashed_password
             )
             db.add(new_admin)
@@ -49,31 +42,7 @@ def seed_admin_user():
     finally:
         db.close()
 
-@app.post("/auth/login", response_model=schemas.LoginResponse)
-def login(request: schemas.LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.email == request.email).first()
-
-    if not user or not auth.verify_password(request.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    access_token = auth.create_access_token(
-        data={"sub": user.email, "user_id": user.id}
-    )
-
-    return {
-        "status": "success",
-        "token": access_token,
-        "message": "Login successful",
-        "user": {
-            "id": user.id,
-            "name": user.name,
-            "email": user.email
-        }
-    }
+app.include_router(api_router, prefix="/api/v1")
 
 @app.get("/")
 def read_root():

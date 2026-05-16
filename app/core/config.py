@@ -1,0 +1,27 @@
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+class Settings(BaseSettings):
+    # Server Configuration
+    PORT: int = 8000
+
+    # Database Configuration
+    DATABASE_URL: str = "sqlite:///./sql_app.db"
+    DB_USER: str = "fil"
+    DB_PASSWORD: str = ""
+    DB_HOST: str = "localhost"
+    DB_PORT: int = 5432
+    DB_NAME: str = "leafcloud3"
+
+    # Security & JWT
+    SECRET_KEY: str = "your-super-secret-key-change-this-in-production"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+
+    # Admin Initial Seeding
+    ADMIN_EMAIL: str = "admin@leafcloud.com"
+    ADMIN_NAME: str = "Super Admin"
+    ADMIN_PASSWORD: str = "admin123"
+
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+settings = Settings()

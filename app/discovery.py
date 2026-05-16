@@ -1,18 +1,19 @@
 import socket
 import logging
-from zeroconf import IPVersion, ServiceInfo, Zeroconf
+from zeroconf import IPVersion, ServiceInfo
+from zeroconf.asyncio import AsyncZeroconf
 from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 class DiscoveryService:
     """
-    Handles mDNS (Zeroconf) service broadcasting.
+    Handles mDNS (Zeroconf) service broadcasting using AsyncZeroconf.
     Follows Single Responsibility Principle (SRP) by focusing only on discovery logic.
     """
     
     def __init__(self):
-        self.zeroconf: Optional[Zeroconf] = None
+        self.aiozc: Optional[AsyncZeroconf] = None
         self.service_info: Optional[ServiceInfo] = None
 
     def get_local_ip(self) -> str:
@@ -30,11 +31,11 @@ class DiscoveryService:
             s.close()
         return ip
 
-    def start(self, port: int, service_name: str = "LeafCloud-Server"):
+    async def start(self, port: int, service_name: str = "LeafCloud-Server"):
         """
-        Starts the Zeroconf service broadcast.
+        Starts the Zeroconf service broadcast asynchronously.
         """
-        if self.zeroconf:
+        if self.aiozc:
             logger.warning("Zeroconf service already started.")
             return
 
@@ -51,20 +52,20 @@ class DiscoveryService:
             server=f"{service_name.lower()}.local.",
         )
 
-        self.zeroconf = Zeroconf(ip_version=IPVersion.V4Only)
-        self.zeroconf.register_service(self.service_info)
+        self.aiozc = AsyncZeroconf(ip_version=IPVersion.V4Only)
+        await self.aiozc.register_service(self.service_info)
         
         logger.info(f"Zeroconf service registered: {registration_name} at {local_ip}:{port}")
 
-    def stop(self):
+    async def stop(self):
         """
-        Unregisters the service and closes the Zeroconf instance.
+        Unregisters the service and closes the AsyncZeroconf instance.
         """
-        if self.zeroconf:
+        if self.aiozc:
             if self.service_info:
-                self.zeroconf.unregister_service(self.service_info)
-            self.zeroconf.close()
-            self.zeroconf = None
+                await self.aiozc.unregister_service(self.service_info)
+            await self.aiozc.close()
+            self.aiozc = None
             self.service_info = None
             logger.info("Zeroconf service unregistered and closed.")
 

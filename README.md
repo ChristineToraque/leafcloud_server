@@ -70,10 +70,12 @@ For detailed guides, please refer to our documentation pages:
 9.  **[Image Crops](docs/page-9-image-crops.md)** - Details on the segmented plant images used for AI.
 10. **[NPK Predictions](docs/page-10-npk-predictions.md)** - Details on the numerical AI estimation outputs.
 11. **[Image Crop Progress](docs/page-11-image-crop-progress.md)** - Task tracking for image processing.
+12. **[Image Processing Logic](docs/page-12-image-processing-logic.md)** - Details on segmentation and greenness filtering.
 
 ---
 
 ## 🧪 Verification Tools
 
 - **Verify Discovery**: `python scripts/verify-zeroconf.py`
+- **Process Images**: `python scripts/image_processor.py`
 - **Run SQL Queries**: `./scripts/run-query.sh "SELECT * FROM users;"`

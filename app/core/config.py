@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     OUTPUT_DIR: str = "cropped_dataset"
     CROP_SIZE: int = 224
     GREEN_THRESHOLD: float = 30.0
+    AI_MODEL_PATH: str = "leafcloud_sensor_boost_20260516_1004.keras"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

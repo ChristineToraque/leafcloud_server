@@ -1,0 +1,132 @@
+import logging
+import tensorflow as tf
+import numpy as np
+import cv2
+import os
+from sqlalchemy.orm import Session
+from app.core.config import settings
+from app.core.database import SessionLocal
+from app.models import CleanedDailyReading, ImageCrop, NPKPrediction
+from app.services.image_processing import calculate_greenness, get_crop_coordinates
+import uuid
+import shutil
+
+logger = logging.getLogger(__name__)
+
+# Global variable to cache the loaded model
+_MODEL = None
+
+def get_model():
+    """Loads and caches the AI model."""
+    global _MODEL
+    if _MODEL is None:
+        if os.path.exists(settings.AI_MODEL_PATH):
+            logger.info(f"Loading AI Model from {settings.AI_MODEL_PATH}...")
+            _MODEL = tf.keras.models.load_model(settings.AI_MODEL_PATH)
+        else:
+            logger.error(f"AI Model file not found at {settings.AI_MODEL_PATH}")
+    return _MODEL
+
+def process_iot_data_background(cleaned_reading_id: int):
+    """
+    Background task to process the uploaded image and perform AI prediction.
+    Separated into a standalone function for BackgroundTasks.
+    """
+    db = SessionLocal()
+    try:
+        # 1. Fetch the reading
+        reading = db.query(CleanedDailyReading).filter(CleanedDailyReading.id == cleaned_reading_id).first()
+        if not reading:
+            logger.error(f"Background task failed: Reading {cleaned_reading_id} not found")
+            return
+
+        # 2. Start Cropping Logic
+        logger.info(f"Processing crops for reading {reading.id}...")
+        img = cv2.imread(reading.image_path)
+        if img is None:
+            logger.error(f"Could not read image for cropping: {reading.image_path}")
+            return
+
+        h, w = img.shape[:2]
+        coords = get_crop_coordinates(w, h, settings.CROP_SIZE)
+        
+        valid_crops = []
+        base_name = os.path.splitext(os.path.basename(reading.image_path))[0]
+        dest_folder = os.path.dirname(reading.image_path) # Save in same folder as raw
+
+        for x, y, crop_type in coords:
+            crop_img = img[y:y+settings.CROP_SIZE, x:x+settings.CROP_SIZE]
+            unique_id = uuid.uuid4().hex[:4]
+            temp_path = f"temp_{unique_id}.jpg"
+            cv2.imwrite(temp_path, crop_img)
+            
+            if calculate_greenness(temp_path) >= settings.GREEN_THRESHOLD:
+                final_name = f"crop_{base_name}_{crop_type}_{y}_{x}_{unique_id}.jpg"
+                final_path = os.path.join(dest_folder, final_name)
+                shutil.move(temp_path, final_path)
+                
+                # Save crop record
+                new_crop = ImageCrop(
+                    daily_reading_id=reading.id,
+                    crop_path=final_path.replace("\\", "/"),
+                    crop_type=crop_type
+                )
+                db.add(new_crop)
+                valid_crops.append((crop_img, final_path))
+            else:
+                os.remove(temp_path)
+
+        db.commit()
+        logger.info(f"Generated {len(valid_crops)} valid crops for reading {reading.id}")
+
+        # 3. AI Prediction
+        model = get_model()
+        if model and valid_crops:
+            logger.info(f"Running AI Prediction for reading {reading.id}...")
+            
+            # Prepare inputs
+            # The model expects [images, sensors]
+            # Normalize sensors first (matching nutrient_classifier.py logic)
+            # SENSOR_NORM = {'ph': (3.0, 10.0), 'ec': (0.0, 3.0), 'water_temp': (24.0, 29.0)}
+            ph_norm = (np.clip(reading.ph, 3.0, 10.0) - 3.0) / (10.0 - 3.0)
+            ec_norm = (np.clip(reading.ec, 0.0, 3.0) - 0.0) / (3.0 - 0.0)
+            temp_norm = (np.clip(reading.water_temp, 24.0, 29.0) - 24.0) / (29.0 - 24.0)
+            
+            sensor_input = np.array([[ph_norm, ec_norm, temp_norm]], dtype=np.float32)
+            
+            # Use the first 5 valid crops for an ensemble average prediction
+            all_preds = []
+            for crop_img, _ in valid_crops[:5]:
+                # Resize and preprocess image
+                resized = cv2.resize(crop_img, (224, 224))
+                # preprocess_input: scale to -1 to 1
+                img_input = (resized.astype(np.float32) / 127.5) - 1.0
+                img_input = np.expand_dims(img_input, axis=0)
+                
+                pred = model.predict([img_input, sensor_input], verbose=0)
+                all_preds.append(pred[0])
+            
+            # Average the predictions
+            avg_pred = np.mean(all_preds, axis=0) # [prob_water, prob_npk, prob_micro, prob_mix]
+            
+            # For now, we use the classification model but save to npk_predictions
+            # Since the current model is a classifier, we use the probabilities as 'psuedo' scores
+            # Or we can just store the top class. 
+            # In your requirements you want estimation (Numbers). 
+            # Until the regression model is ready, we store the probabilities.
+            
+            prediction_record = NPKPrediction(
+                daily_reading_id=reading.id,
+                predicted_n=float(avg_pred[1]), # Prob of NPK
+                predicted_p=float(avg_pred[2]), # Prob of Micro
+                predicted_k=float(avg_pred[3]), # Prob of Mix
+                confidence_score=float(np.max(avg_pred))
+            )
+            db.add(prediction_record)
+            db.commit()
+            logger.info(f"AI Prediction complete for reading {reading.id}")
+
+    except Exception as e:
+        logger.error(f"Background processing error: {e}")
+    finally:
+        db.close()

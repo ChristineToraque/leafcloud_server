@@ -72,6 +72,7 @@ For detailed guides, please refer to our documentation pages:
 11. **[Image Crop Progress](docs/page-11-image-crop-progress.md)** - Task tracking for image processing.
 12. **[Image Processing Logic](docs/page-12-image-processing-logic.md)** - Details on segmentation and greenness filtering.
 13. **[Tank Configuration](docs/page-13-tank-configuration.md)** - Dynamic system settings and fertilizer profiles.
+14. **[Mobile API Integration](docs/page-14-mobile-api-integration.md)** - How to connect your mobile app to the config API.
 
 ---
 

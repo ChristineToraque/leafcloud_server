@@ -55,9 +55,8 @@ async def upload_iot_data(
         raise HTTPException(status_code=500, detail=f"Could not save image: {e}")
 
     # 4. Create Database Entry (Raw Reading)
-    # We save to daily_readings as the 'raw' entry
     db_reading = DailyReading(
-        experiment_id=None, # In the new dynamic system, we link via tank
+        experiment_id=None,
         image_path=file_path.replace("\\", "/"),
         ph=ph,
         ec=ec,
@@ -66,15 +65,15 @@ async def upload_iot_data(
     )
     db.add(db_reading)
     
-    # 5. Create Cleaned Entry (Initial)
-    # For now, we mirror the raw data to cleaned_daily_readings for AI processing
+    # 5. Create Cleaned Entry (with 'is_new_data' flag)
     cleaned_reading = CleanedDailyReading(
         timestamp=now,
         image_path=file_path.replace("\\", "/"),
         ph=ph,
         ec=ec,
         water_temp=temp,
-        experiment_id=None
+        experiment_id=None,
+        is_new_data=True
     )
     db.add(cleaned_reading)
     

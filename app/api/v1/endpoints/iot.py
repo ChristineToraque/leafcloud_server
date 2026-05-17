@@ -10,6 +10,7 @@ from app.core.database import get_db
 from app.core.config import settings
 from app.models.tank_config import TankConfig
 from app.models.npk_prediction import NPKPrediction
+from app.models.reading import CleanedDailyReading
 from app.schemas.dashboard import DashboardResponse, TelemetryData, NutrientEstimation, ActionableAlert
 
 router = APIRouter()

@@ -9,5 +9,7 @@ class NPKPrediction(Base):
     predicted_n = Column(Float)
     predicted_p = Column(Float)
     predicted_k = Column(Float)
+    macro_scale = Column(Float)
+    micro_scale = Column(Float)
     confidence_score = Column(Float)
     prediction_date = Column(DateTime(timezone=True), server_default=func.now())

@@ -74,6 +74,7 @@ For detailed guides, please refer to our documentation pages:
 13. **[Tank Configuration](docs/page-13-tank-configuration.md)** - Dynamic system settings and fertilizer profiles.
 14. **[Mobile API Integration](docs/page-14-mobile-api-integration.md)** - How to connect your mobile app to the config API.
 15. **[IoT Pi Integration](docs/page-15-iot-pi-integration.md)** - How to upload data from a Raspberry Pi.
+16. **[Monitoring Dashboard](docs/page-16-dashboard-api.md)** - The data aggregation API for the farmer's UI.
 
 ---
 

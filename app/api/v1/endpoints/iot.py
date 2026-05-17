@@ -11,7 +11,8 @@ from app.core.config import settings
 from app.models.tank_config import TankConfig
 from app.models.npk_prediction import NPKPrediction
 from app.models.reading import CleanedDailyReading
-from app.schemas.dashboard import DashboardResponse, TelemetryData, NutrientEstimation, ActionableAlert
+from app.schemas.dashboard import DashboardResponse, TelemetryData, NutrientEstimation, ActionableAlert, AdvisoryInsight
+from app.services.ai_service import process_iot_data_background
 
 router = APIRouter()
 
@@ -58,14 +59,29 @@ def get_tank_dashboard(tank_id: int, db: Session = Depends(get_db)):
     p_from_micro = (micro_scale * micro_weight_total) * (tank.micro_p_pct / 100)
     k_from_micro = (micro_scale * micro_weight_total) * (tank.micro_k_pct / 100)
 
-    # 5. Determine Profile Status
+    # 5. Determine Profile Status and Advisory
     profile = "Balanced"
     if macro_scale > micro_scale + 0.3:
         profile = "Macro-Leaning Blend"
     elif micro_scale > macro_scale + 0.3:
         profile = "Micro-Leaning Blend"
     
-    # 6. Generate Actionable Alert
+    # 6. Generate Advisory & Alert
+    total_grams = n_from_macro + p_from_macro + k_from_macro + n_from_micro + p_from_micro + k_from_micro
+    
+    if macro_scale >= 0.9 and micro_scale >= 0.9:
+        advisory_sum = "Optimal Nutrient Balance"
+        advisory_exp = f"Your {tank.tank_name} has a stable concentration of approximately {round(total_grams, 1)}g of total NPK. The plants are currently in a high-nutrition environment."
+        advisory_act = "No immediate action required. Maintain current environmental conditions."
+    elif macro_scale < 0.7 or micro_scale < 0.7:
+        advisory_sum = "Nutrient Depletion Detected"
+        advisory_exp = f"Nutrient levels have dropped significantly to {int(min(macro_scale, micro_scale)*100)}% of your target dosage. There is only {round(total_grams, 1)}g of total nutrients remaining."
+        advisory_act = "Follow the Top-up instructions below to restore the optimal nutrient balance."
+    else:
+        advisory_sum = "Moderate Concentration"
+        advisory_exp = f"Nutrients are at stable but declining levels ({int(min(macro_scale, micro_scale)*100)}%). Total NPK mass is {round(total_grams, 1)}g."
+        advisory_act = "Monitor closely. Top-up may be required within the next 24-48 hours."
+
     alert = None
     if macro_scale < 0.7 or micro_scale < 0.7:
         topup_macro = max(0, (1.0 - macro_scale) * tank.target_macro_dosage_mll * tank.water_volume_liters)
@@ -96,7 +112,13 @@ def get_tank_dashboard(tank_id: int, db: Session = Depends(get_db)):
         estimated_nutrients=NutrientEstimation(
             n_grams=round(n_from_macro + n_from_micro, 2),
             p_grams=round(p_from_macro + p_from_micro, 2),
-            k_grams=round(k_from_macro + k_from_micro, 2)
+            k_grams=round(k_from_macro + k_from_micro, 2),
+            total_estimated_grams=round(total_grams, 2)
+        ),
+        advisory=AdvisoryInsight(
+            summary=advisory_sum,
+            explanation=advisory_exp,
+            farmer_action=advisory_act
         ),
         alert=alert
     )

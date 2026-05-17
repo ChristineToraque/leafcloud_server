@@ -12,7 +12,13 @@ class NutrientEstimation(BaseModel):
     n_grams: float
     p_grams: float
     k_grams: float
+    total_estimated_grams: float
     unit: str = "grams"
+
+class AdvisoryInsight(BaseModel):
+    summary: str # e.g. "Optimal Balance" or "Nutrient Depletion"
+    explanation: str # Detailed explanation of what the numbers mean
+    farmer_action: str # Clear instructions on what to do next
 
 class ActionableAlert(BaseModel):
     level: str # INFO, WARNING, CRITICAL
@@ -31,4 +37,5 @@ class DashboardResponse(BaseModel):
     
     telemetry: TelemetryData
     estimated_nutrients: NutrientEstimation
+    advisory: AdvisoryInsight
     alert: Optional[ActionableAlert] = None

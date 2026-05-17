@@ -81,4 +81,5 @@ For detailed guides, please refer to our documentation pages:
 
 - **Verify Discovery**: `python scripts/verify-zeroconf.py`
 - **Process Images**: `python scripts/image_processor.py`
+- **Seed Predictions**: `python scripts/seed_predictions.py`
 - **Run SQL Queries**: `./scripts/run-query.sh "SELECT * FROM users;"`

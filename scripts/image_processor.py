@@ -5,7 +5,7 @@ import shutil
 import logging
 from app.core.config import settings
 from app.core.database import SessionLocal
-from app.models import DailyReading, ImageCrop, ImageCropProgress, AutomatedActionLog
+from app.models import CleanedDailyReading, ImageCrop, ImageCropProgress, AutomatedActionLog
 from app.services.image_processing import (
     calculate_greenness, 
     delete_macos_metadata,
@@ -51,12 +51,12 @@ def process_single_image(db, rel_path, source_dir, output_dir):
     if not strategies:
         return True # Nothing to do, consider it success
 
-    # Find DailyReading to link the crops
+    # Find CleanedDailyReading to link the crops
     # Match the search logic from the original script
     search_path_long = f"images/{rel_path}"
-    reading = db.query(DailyReading).filter(
-        (DailyReading.image_path == search_path_long) | 
-        (DailyReading.image_path == rel_path)
+    reading = db.query(CleanedDailyReading).filter(
+        (CleanedDailyReading.image_path == search_path_long) | 
+        (CleanedDailyReading.image_path == rel_path)
     ).first()
 
     base_name = os.path.splitext(os.path.basename(rel_path))[0]

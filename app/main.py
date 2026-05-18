@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from app.core.config import settings
 from app.core import database, security
 from app.models import user as user_models
@@ -42,6 +43,7 @@ def seed_admin_user():
     finally:
         db.close()
 
+app.mount("/images", StaticFiles(directory=settings.SOURCE_DIR), name="images")
 app.include_router(api_router, prefix="/api/v1")
 
 @app.get("/")

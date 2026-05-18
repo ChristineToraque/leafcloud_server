@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, BackgroundTasks, Request
 from sqlalchemy.orm import Session
 import os
 import uuid
@@ -17,7 +17,7 @@ from app.services.ai_service import process_iot_data_background
 router = APIRouter()
 
 @router.get("/dashboard/{tank_id}", response_model=DashboardResponse)
-def get_tank_dashboard(tank_id: int, db: Session = Depends(get_db)):
+def get_tank_dashboard(tank_id: int, request: Request, db: Session = Depends(get_db)):
     """
     Returns the real-time monitoring dashboard data for a specific tank.
     Performs the dynamic math to convert AI scales into physical grams and alerts.
@@ -100,7 +100,7 @@ def get_tank_dashboard(tank_id: int, db: Session = Depends(get_db)):
         tank_id=tank.id,
         tank_name=tank.tank_name,
         last_updated=latest_reading.timestamp,
-        image_url=latest_reading.image_path,
+        image_url=str(request.base_url).rstrip("/") + "/" + latest_reading.image_path.replace("\\", "/"),
         health_status="HEALTHY" if macro_scale > 0.8 else "NUTRIENT DEFICIENT",
         profile_detected=profile,
         telemetry=TelemetryData(

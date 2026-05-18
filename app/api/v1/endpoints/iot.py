@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, BackgroundTasks, Request
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, BackgroundTasks, Request, Query
 from sqlalchemy.orm import Session
 import os
 import uuid
@@ -12,7 +12,9 @@ from app.models.tank_config import TankConfig
 from app.models.npk_prediction import NPKPrediction
 from app.models.daily_reading import DailyReading
 from app.schemas.dashboard import DashboardResponse, TelemetryData, NutrientEstimation, ActionableAlert, AdvisoryInsight
+from app.schemas.history import HistoryResponse
 from app.services.ai_service import process_iot_data_background
+from app.services.history_service import get_tank_history
 
 router = APIRouter()
 
@@ -185,3 +187,18 @@ async def upload_iot_data(
         "message": "Data received and saved",
         "reading_id": daily_reading.id
     }
+
+
+@router.get("/history/{tank_id}", response_model=HistoryResponse)
+def get_tank_history_endpoint(
+    tank_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    days: int = Query(default=7, ge=1, le=90, description="Number of past days to fetch"),
+    limit: int = Query(default=200, ge=1, le=200, description="Maximum number of readings to return"),
+):
+    tank = db.query(TankConfig).filter(TankConfig.id == tank_id).first()
+    if not tank:
+        raise HTTPException(status_code=404, detail=f"Tank with ID {tank_id} not found")
+
+    return get_tank_history(db, tank, days, limit, str(request.base_url))

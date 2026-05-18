@@ -1,5 +1,6 @@
 from app.core.database import Base
 from .user import User
+from .daily_reading import DailyReading
 from .reading import CleanedDailyReading
 from .experiment import Experiment
 from .image_crop import ImageCrop

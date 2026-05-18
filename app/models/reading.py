@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger, String, Float, DateTime, Index, Boolean, Integer
+from sqlalchemy import Column, BigInteger, String, Float, DateTime, Index, Integer
 from app.core.database import Base
 
 class CleanedDailyReading(Base):
@@ -12,8 +12,6 @@ class CleanedDailyReading(Base):
     water_temp = Column(Float)
     experiment_id = Column(BigInteger)
     tank_id = Column(Integer)
-    is_new_data = Column(Boolean, default=False)
-
     __table_args__ = (
         Index("idx_cleaned_exp_id", "experiment_id"),
         Index("idx_cleaned_timestamp", "timestamp"),

@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 from sqlalchemy.orm import Session
 from app.core.database import SessionLocal
-from app.models import CleanedDailyReading, NPKPrediction
+from app.models import DailyReading, NPKPrediction
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
@@ -12,12 +12,12 @@ logger = logging.getLogger(__name__)
 def seed_predictions(limit: int = 100):
     """
     Generates dummy NPK predictions for testing purposes.
-    Links them to existing cleaned_daily_readings.
+    Links them to existing daily_readings.
     """
     db = SessionLocal()
     try:
         # 1. Fetch readings that don't have predictions yet
-        readings = db.query(CleanedDailyReading).outerjoin(NPKPrediction).filter(
+        readings = db.query(DailyReading).outerjoin(NPKPrediction).filter(
             NPKPrediction.id == None
         ).limit(limit).all()
 

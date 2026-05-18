@@ -6,7 +6,7 @@ import os
 from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.database import SessionLocal
-from app.models import CleanedDailyReading, ImageCrop, NPKPrediction
+from app.models import DailyReading, ImageCrop, NPKPrediction
 from app.services.image_processing import calculate_greenness, get_crop_coordinates
 import uuid
 import shutil
@@ -35,7 +35,7 @@ def process_iot_data_background(cleaned_reading_id: int):
     db = SessionLocal()
     try:
         # 1. Fetch the reading
-        reading = db.query(CleanedDailyReading).filter(CleanedDailyReading.id == cleaned_reading_id).first()
+        reading = db.query(DailyReading).filter(DailyReading.id == cleaned_reading_id).first()
         if not reading:
             logger.error(f"Background task failed: Reading {cleaned_reading_id} not found")
             return

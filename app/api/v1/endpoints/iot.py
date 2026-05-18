@@ -10,7 +10,7 @@ from app.core.database import get_db
 from app.core.config import settings
 from app.models.tank_config import TankConfig
 from app.models.npk_prediction import NPKPrediction
-from app.models.reading import CleanedDailyReading
+from app.models.daily_reading import DailyReading
 from app.schemas.dashboard import DashboardResponse, TelemetryData, NutrientEstimation, ActionableAlert, AdvisoryInsight
 from app.services.ai_service import process_iot_data_background
 
@@ -28,9 +28,9 @@ def get_tank_dashboard(tank_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Tank configuration not found")
 
     # 2. Fetch Latest Reading
-    latest_reading = db.query(CleanedDailyReading).filter(
-        CleanedDailyReading.tank_id == tank_id
-    ).order_by(CleanedDailyReading.timestamp.desc()).first()
+    latest_reading = db.query(DailyReading).filter(
+        DailyReading.tank_id == tank_id
+    ).order_by(DailyReading.timestamp.desc()).first()
 
     if not latest_reading:
         raise HTTPException(status_code=404, detail="No readings found for this tank")
@@ -162,26 +162,26 @@ async def upload_iot_data(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Could not save image: {e}")
 
-    # 4. Create Database Entry (Cleaned Entry with 'is_new_data' flag)
-    cleaned_reading = CleanedDailyReading(
+    # 4. Create Database Entry
+    daily_reading = DailyReading(
         timestamp=now,
         image_path=file_path.replace("\\", "/"),
         ph=ph,
         ec=ec,
         water_temp=temp,
-        experiment_id=None,
         tank_id=tank_id,
-        is_new_data=True
+        is_new_data=True,
+        status="pending"
     )
-    db.add(cleaned_reading)
+    db.add(daily_reading)
     db.commit()
-    db.refresh(cleaned_reading)
+    db.refresh(daily_reading)
 
     # 5. Trigger Background AI Tasks (Crop + Predict)
-    background_tasks.add_task(process_iot_data_background, cleaned_reading.id)
+    background_tasks.add_task(process_iot_data_background, daily_reading.id)
 
     return {
         "status": "success",
         "message": "Data received and saved",
-        "cleaned_id": cleaned_reading.id
+        "reading_id": daily_reading.id
     }

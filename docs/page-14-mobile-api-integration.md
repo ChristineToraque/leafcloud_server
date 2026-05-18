@@ -96,3 +96,13 @@ const saveSettings = async (formData) => {
 
 ## 4. Automatic Validation
 FastAPI will automatically return a `422 Unprocessable Entity` error if the mobile app sends invalid data (e.g., sending a negative number for water volume or a string where a number is expected). This ensures your database always stays clean.
+
+---
+
+## 5. Related Mobile Endpoints
+Beyond tank configuration, the mobile app also consumes these endpoints:
+
+| Endpoint | Doc | Purpose |
+| :--- | :--- | :--- |
+| `GET /api/v1/iot/dashboard/{tank_id}` | page-16 | Real-time nutrient status and alerts |
+| `GET /api/v1/iot/history/{tank_id}` | page-18 | Time-series readings for charts and trends |

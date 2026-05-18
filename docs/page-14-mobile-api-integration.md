@@ -106,3 +106,4 @@ Beyond tank configuration, the mobile app also consumes these endpoints:
 | :--- | :--- | :--- |
 | `GET /api/v1/iot/dashboard/{tank_id}` | page-16 | Real-time nutrient status and alerts |
 | `GET /api/v1/iot/history/{tank_id}` | page-18 | Time-series readings for charts and trends |
+| `GET /api/v1/iot/alert/{tank_id}` | page-19 | Lightweight poll for notification triggers |

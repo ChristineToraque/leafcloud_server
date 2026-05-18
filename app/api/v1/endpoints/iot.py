@@ -13,8 +13,10 @@ from app.models.npk_prediction import NPKPrediction
 from app.models.daily_reading import DailyReading
 from app.schemas.dashboard import DashboardResponse, TelemetryData, NutrientEstimation, ActionableAlert, AdvisoryInsight
 from app.schemas.history import HistoryResponse
+from app.schemas.alert import AlertStatusResponse
 from app.services.ai_service import process_iot_data_background
 from app.services.history_service import get_tank_history
+from app.services.alert_service import get_tank_alert_status
 
 router = APIRouter()
 
@@ -187,6 +189,15 @@ async def upload_iot_data(
         "message": "Data received and saved",
         "reading_id": daily_reading.id
     }
+
+
+@router.get("/alert/{tank_id}", response_model=AlertStatusResponse)
+def get_tank_alert(tank_id: int, db: Session = Depends(get_db)):
+    tank = db.query(TankConfig).filter(TankConfig.id == tank_id).first()
+    if not tank:
+        raise HTTPException(status_code=404, detail=f"Tank with ID {tank_id} not found")
+
+    return get_tank_alert_status(db, tank)
 
 
 @router.get("/history/{tank_id}", response_model=HistoryResponse)

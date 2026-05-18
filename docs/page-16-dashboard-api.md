@@ -8,24 +8,57 @@ This guide explains how the mobile app retrieves the real-time monitoring data f
 
 ---
 
-## 2. Response Structure
-The endpoint returns a complex JSON object that aggregates sensor telemetry, AI predictions, and physical math.
+## 2. Full Sample Response
+```json
+{
+  "tank_id": 1,
+  "tank_name": "Reservoir",
+  "last_updated": "2026-05-18T14:30:22",
+  "image_url": "http://192.168.1.20:8000/images/2026-05-18/Reservoir/reading_20260518_143022_a3f9c1.jpg",
+  "health_status": "HEALTHY",
+  "profile_detected": "Balanced",
+  "telemetry": {
+    "ph": 6.2,
+    "ec": 1.4,
+    "water_temp": 26.5,
+    "status": "Safe Range"
+  },
+  "estimated_nutrients": {
+    "n_grams": 4.32,
+    "p_grams": 1.78,
+    "k_grams": 3.10,
+    "total_estimated_grams": 9.20,
+    "unit": "grams"
+  },
+  "advisory": {
+    "summary": "Optimal Nutrient Balance",
+    "explanation": "Your Reservoir has a stable concentration of approximately 9.2g of total NPK.",
+    "farmer_action": "No immediate action required. Maintain current environmental conditions."
+  },
+  "alert": null
+}
+```
+
+---
+
+## 3. Response Fields
 
 ### A. Raw Sensor Telemetry
 Direct readings from the Raspberry Pi sensors.
-*   `ph`, `ec`, `water_temp`
+*   `ph`, `ec`, `water_temp`, `status`
 
 ### B. Estimated Nutrient Content (Physical Grams)
-The backend automatically multiplies the AI's **Scaling Index** against the **Tank Configuration** (Volume and NPK %).
-*   `n_grams`, `p_grams`, `k_grams`
+The backend multiplies the AI's **Scaling Index** against the **Tank Configuration** (Volume and NPK %).
+*   `n_grams`, `p_grams`, `k_grams`, `total_estimated_grams`
 
 ### C. Visual Diagnostics
-*   `image_url`: Path to the latest processed crop image.
-*   `health_status`: `HEALTHY` or `NUTRIENT DEFICIENT`.
-*   `profile_detected`: `Balanced`, `Macro-Leaning Blend`, or `Micro-Leaning Blend`.
+*   `image_url`: Full HTTP URL to the latest plant image. Load directly as an `<img>` src in the mobile app.
+    - Format: `http://<server-ip>:8000/images/<date>/<tank_name>/<filename>.jpg`
+*   `health_status`: `HEALTHY` or `NUTRIENT DEFICIENT`
+*   `profile_detected`: `Balanced`, `Macro-Leaning Blend`, or `Micro-Leaning Blend`
 
 ### D. Actionable Alerts
-If nutrient levels drop below 70%, the server generates a top-up instruction:
+Only present when nutrient levels drop below 70%. `null` otherwise.
 ```json
 "alert": {
   "level": "WARNING",
@@ -38,20 +71,25 @@ If nutrient levels drop below 70%, the server generates a top-up instruction:
 
 ---
 
-## 3. How the Math Works
+## 4. How the Math Works
 The backend performs the following calculation on-the-fly:
-1.  **AI Output**: Gets `macro_scale` (e.g., 0.5) from the AI model.
-2.  **Config**: Gets `target_macro_dosage_mll` (e.g., 2.0 mL/L) and `water_volume_liters` (e.g., 6.0 L).
-3.  **Physical Amount**: 
+1.  **AI Output**: Gets `macro_scale` (e.g., 0.5) and `micro_scale` from the latest `npk_predictions` row.
+2.  **Config**: Gets `target_macro_dosage_mll` (e.g., 2.0 mL/L) and `water_volume_liters` (e.g., 6.0 L) from `tank_configs`.
+3.  **Physical Amount**:
     - `Grams = (Scale * Dosage * Volume) * (NPK % / 100)`
     - `Top-up mL = (1.0 - Scale) * Dosage * Volume`
 
-## 4. Mobile Implementation Example
-The mobile app should call this endpoint every time the farmer opens the dashboard or refreshes the screen.
+---
+
+## 5. Mobile Implementation Example
 ```javascript
 const refreshDashboard = async (tankId) => {
   const response = await fetch(`http://192.168.1.20:8000/api/v1/iot/dashboard/${tankId}`);
   const data = await response.json();
+
+  // Use image_url directly as an image source
+  document.getElementById('plant-image').src = data.image_url;
+
   updateUI(data);
 };
 ```

@@ -1,27 +1,26 @@
-# Database Model: **Raw Daily Readings**
+# Database Model: **Cleaned Daily Readings** (Legacy Reference)
 
-This document explains the schema and purpose of the `daily_readings` table.
+This document describes the `cleaned_daily_readings` table, which is now a **legacy/archive** table.
 
 ## 1. Overview
-The `daily_readings` table stores the raw sensor data and image references as they are initially collected. This serves as the source data for the "cleaned" versions used in AI training.
+The `cleaned_daily_readings` table was originally used to store a processed version of raw sensor data for AI training. As of the IoT pipeline refactor, the `daily_readings` table is now the single source of truth for all sensor data. See `page-6-daily-readings.md` for the current schema.
 
 ## 2. Table Schema
 
 | Column | Type | Description |
 | :--- | :--- | :--- |
-| `id` | Integer | Unique identifier (Primary Key). |
-| `timestamp` | DateTime (TZ) | Record creation time (Defaults to `now()`). |
-| `image_path` | String(255) | Path to the raw crop image. |
-| `ph` | Float | Raw pH reading. |
-| `ec` | Float | Raw EC reading. |
-| `water_temp` | Float | Raw water temperature reading. |
-| `status` | String(50) | Status of the reading (e.g., processed, pending). |
-| `experiment_id` | Integer | Link to the experiment. |
+| `id` | BigInteger | Unique identifier (Primary Key). |
+| `timestamp` | DateTime (TZ) | The exact date and time the reading was recorded. |
+| `image_path` | String | Path to the image associated with this reading. |
+| `ph` | Float | The pH level of the water. |
+| `ec` | Float | The Electrical Conductivity of the water. |
+| `water_temp` | Float | The temperature of the water in Celsius. |
+| `experiment_id` | BigInteger | Reference to the experiment this reading belongs to. |
+| `tank_id` | Integer | Reference to the tank this reading belongs to. |
 
-## 3. Implementation Details
-*   **Automatic Timestamps**: The `timestamp` field is automatically populated by the database using `func.now()`.
-*   **Indexing**: The `id` column is indexed for rapid primary key lookups.
-*   **Exclusions**: Note that internal tracking columns like `ph_is_estimated` and `needs_ph_update` are intentionally excluded from this model to keep the API layer focused on core data.
+## 3. Performance (Indexes)
+*   `idx_cleaned_exp_id`: Optimizes lookups for readings belonging to a specific experiment.
+*   `idx_cleaned_timestamp`: Optimizes time-series analysis and range-based queries.
 
-## 4. Relationship to Cleaned Data
-Data from this table is typically processed (outlier removal, normalization) and then stored in the `cleaned_daily_readings` table for use by the `nutrient_classifier.py`.
+## 4. Note
+New IoT uploads no longer write to this table. It is retained for historical training data compatibility with `nutrient_classifier.py` scripts that reference older datasets.

@@ -51,6 +51,7 @@ def upload_data(image_path, ph, ec, temp, tank_id=1):
         try:
             response = requests.post(SERVER_URL, files=files, data=data)
             if response.ok:
+                # response contains: {"status": "success", "reading_id": <int>}
                 print("Data uploaded successfully:", response.json())
             else:
                 print("Upload failed:", response.text)

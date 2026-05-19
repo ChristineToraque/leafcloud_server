@@ -95,7 +95,8 @@ def process_iot_data_background(cleaned_reading_id: int):
             sensor_input = np.array([[ph_norm, ec_norm, temp_norm]], dtype=np.float32)
             
             # Use the first 5 valid crops for an ensemble average prediction
-            all_preds = []
+            all_clf_preds = []
+            all_reg_preds = []
             for crop_img, _ in valid_crops[:5]:
                 # Resize and preprocess image
                 resized = cv2.resize(crop_img, (224, 224))
@@ -103,24 +104,48 @@ def process_iot_data_background(cleaned_reading_id: int):
                 img_input = (resized.astype(np.float32) / 127.5) - 1.0
                 img_input = np.expand_dims(img_input, axis=0)
                 
-                pred = model.predict([img_input, sensor_input], verbose=0)
-                all_preds.append(pred[0])
+                # Model returns [clf_output, reg_output]
+                clf_pred, reg_pred = model.predict([img_input, sensor_input], verbose=0)
+                all_clf_preds.append(clf_pred[0])
+                all_reg_preds.append(reg_pred[0])
             
             # Average the predictions
-            avg_pred = np.mean(all_preds, axis=0) # [prob_water, prob_npk, prob_micro, prob_mix]
+            avg_clf = np.mean(all_clf_preds, axis=0) # [prob_water, prob_npk, prob_micro, prob_mix]
+            avg_reg = np.mean(all_reg_preds, axis=0) # [macro_scale, micro_scale]
             
-            # For now, we use the classification model but save to npk_predictions
-            # Since the current model is a classifier, we use the probabilities as 'psuedo' scores
-            # Or we can just store the top class. 
-            # In your requirements you want estimation (Numbers). 
-            # Until the regression model is ready, we store the probabilities.
+            # Classification Output (Label Mapping from training script)
+            LABEL_LIST = ['Water', 'NPK', 'Micro', 'Mix']
+            class_idx = np.argmax(avg_clf)
+            predicted_class = LABEL_LIST[class_idx]
+            confidence = float(avg_clf[class_idx])
+            
+            # Regression Output
+            macro_scale = float(avg_reg[0])
+            micro_scale = float(avg_reg[1])
+            
+            # Sanity Check (Anomaly Detection)
+            is_anomaly = False
+            if predicted_class == 'Water' and (macro_scale > 0.5 or micro_scale > 0.5):
+                logger.warning(f"Anomaly Detected! AI sees 'Water' but regression predicted high nutrients (Macro: {macro_scale:.2f}, Micro: {micro_scale:.2f})")
+                is_anomaly = True
+            elif predicted_class == 'NPK' and micro_scale > 0.5:
+                logger.warning(f"Anomaly Detected! AI sees 'NPK' (Macro) but regression predicted high Micro ({micro_scale:.2f})")
+                is_anomaly = True
+            elif predicted_class == 'Micro' and macro_scale > 0.5:
+                logger.warning(f"Anomaly Detected! AI sees 'Micro' but regression predicted high Macro ({macro_scale:.2f})")
+                is_anomaly = True
             
             prediction_record = NPKPrediction(
                 daily_reading_id=reading.id,
-                predicted_n=float(avg_pred[1]), # Prob of NPK
-                predicted_p=float(avg_pred[2]), # Prob of Micro
-                predicted_k=float(avg_pred[3]), # Prob of Mix
-                confidence_score=float(np.max(avg_pred))
+                predicted_class=predicted_class,
+                is_anomaly=is_anomaly,
+                macro_scale=macro_scale,
+                micro_scale=micro_scale,
+                # Legacy compatibility
+                predicted_n=float(avg_clf[1]), 
+                predicted_p=float(avg_clf[2]), 
+                predicted_k=float(avg_clf[3]), 
+                confidence_score=confidence
             )
             db.add(prediction_record)
             db.commit()

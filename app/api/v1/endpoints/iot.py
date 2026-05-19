@@ -64,16 +64,30 @@ def get_tank_dashboard(tank_id: int, request: Request, db: Session = Depends(get
     k_from_micro = (micro_scale * micro_weight_total) * (tank.micro_k_pct / 100)
 
     # 5. Determine Profile Status and Advisory
-    profile = "Balanced"
-    if macro_scale > micro_scale + 0.3:
-        profile = "Macro-Leaning Blend"
-    elif micro_scale > macro_scale + 0.3:
-        profile = "Micro-Leaning Blend"
+    if prediction and prediction.predicted_class and prediction.predicted_class != "Unknown":
+        profile_map = {
+            "Water": "Water Only (No Nutrients)",
+            "NPK": "Macro-Leaning Blend",
+            "Micro": "Micro-Leaning Blend",
+            "Mix": "Balanced Mix"
+        }
+        profile = profile_map.get(prediction.predicted_class, "Balanced")
+    else:
+        # Fallback math if AI hasn't classified it yet
+        profile = "Balanced"
+        if macro_scale > micro_scale + 0.3:
+            profile = "Macro-Leaning Blend"
+        elif micro_scale > macro_scale + 0.3:
+            profile = "Micro-Leaning Blend"
     
     # 6. Generate Advisory & Alert
     total_grams = n_from_macro + p_from_macro + k_from_macro + n_from_micro + p_from_micro + k_from_micro
     
-    if macro_scale >= 0.9 and micro_scale >= 0.9:
+    if prediction and prediction.is_anomaly:
+        advisory_sum = "AI Sensor Anomaly Detected"
+        advisory_exp = f"Conflicting data! The AI classified this tank visually as '{prediction.predicted_class}' but regression estimated different physical levels (Macro: {macro_scale:.1f}, Micro: {micro_scale:.1f})."
+        advisory_act = "Please manually inspect the tank, check the nutrient solution, and recalibrate your pH/EC sensors."
+    elif macro_scale >= 0.9 and micro_scale >= 0.9:
         advisory_sum = "Optimal Nutrient Balance"
         advisory_exp = f"Your {tank.tank_name} has a stable concentration of approximately {round(total_grams, 1)}g of total NPK. The plants are currently in a high-nutrition environment."
         advisory_act = "No immediate action required. Maintain current environmental conditions."

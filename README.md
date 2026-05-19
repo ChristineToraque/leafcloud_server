@@ -84,3 +84,5 @@ For detailed guides, please refer to our documentation pages:
 - **Process Images**: `python scripts/image_processor.py`
 - **Seed Predictions**: `python scripts/seed_predictions.py`
 - **Run SQL Queries**: `./scripts/run-query.sh "SELECT * FROM users;"`
+
+![alt text](image.png)

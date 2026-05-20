@@ -19,6 +19,8 @@ class TankConfigBase(BaseModel):
     target_macro_dosage_mll: float = Field(..., ge=0)
     target_micro_dosage_mll: float = Field(..., ge=0)
     
+    upload_interval_seconds: int = Field(default=60, ge=10)
+    
     is_active: bool = True
 
 class TankConfigCreate(TankConfigBase):
@@ -37,6 +39,7 @@ class TankConfigUpdate(BaseModel):
     micro_k_pct: Optional[float] = Field(None, ge=0, le=100)
     target_macro_dosage_mll: Optional[float] = Field(None, ge=0)
     target_micro_dosage_mll: Optional[float] = Field(None, ge=0)
+    upload_interval_seconds: Optional[int] = Field(None, ge=10)
     is_active: Optional[bool] = None
 
 class TankConfigResponse(TankConfigBase):

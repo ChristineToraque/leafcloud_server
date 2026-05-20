@@ -24,6 +24,8 @@ class TankConfig(Base):
     target_macro_dosage_mll = Column(Float, nullable=False)
     target_micro_dosage_mll = Column(Float, nullable=False)
     
+    upload_interval_seconds = Column(Integer, nullable=False, server_default="60")
+    
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

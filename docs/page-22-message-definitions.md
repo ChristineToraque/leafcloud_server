@@ -32,8 +32,3 @@ The visual status of what is currently in the tank.
 Warnings printed to the server terminal during AI processing.
 - **Location**: `app/services/ai_service.py`
 - **Example**: `logger.warning(f"Anomaly Detected! AI sees 'Water' but regression predicted high nutrients...")`
-
-## 5. README Documentation Image
-The project-level diagram or screenshot referenced at the end of the README.
-- **Location**: `README.md`
-- **Reference**: `![alt text](image.png)`

@@ -75,6 +75,19 @@ For detailed guides, please refer to our documentation pages:
 14. **[Mobile API Integration](docs/page-14-mobile-api-integration.md)** - How to connect your mobile app to the config API.
 15. **[IoT Pi Integration](docs/page-15-iot-pi-integration.md)** - How to upload data from a Raspberry Pi.
 16. **[Monitoring Dashboard](docs/page-16-dashboard-api.md)** - The data aggregation API for the farmer's UI.
+17. **[Static Image Serving](docs/page-17-static-image-serving.md)** - How uploaded plant images are served statically.
+18. **[History API](docs/page-18-history-api.md)** - Accessing historical sensor and reading data.
+19. **[Alert Polling](docs/page-19-alert-polling.md)** - Real-time client polling for system status alerts.
+20. **[Multi-task AI Model](docs/page-20-multi-task-ai-model.md)** - Deep learning architecture details for nutrient predictions.
+21. **[Full-stack AI Integration](docs/page-21-full-stack-ai-integration.md)** - Pipeline integrating sensor reading and inference.
+22. **[Message Definitions](docs/page-22-message-definitions.md)** - Dynamic alert and system notification definitions.
+23. **[Sensor Calibration](docs/page-23-sensor-calibration.md)** - Device calibration settings and workflows.
+24. **[EC Calibration Math](docs/page-23-ec-calibration-math.md)** - Underlying mathematical models for EC calibration.
+25. **[Calibration API](docs/page-24-calibration-api.md)** - Endpoint schema and controllers for sensor calibration.
+26. **[How Estimation Works](docs/page-25-how-estimation-works.md)** - Logic and algorithms behind soil/plant estimation.
+27. **[Nutrient Classifier Training](docs/page-26-nutrient-classifier-training-summary.md)** - Training procedures and summary of the ML classifier.
+28. **[Camera Streaming & Terminal Visualization](docs/page-27-camera-streaming.md)** - How to stream video and view it in a terminal or GUI.
+29. **[Upload Interval Configuration](docs/page-28-upload-interval-configuration.md)** - Dynamic upload cooldown configuration and API schemas.
 
 ---
 

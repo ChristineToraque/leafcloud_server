@@ -87,3 +87,42 @@ Instead of automatic table creation, we now use **Alembic** for more controlled 
 *   **Concurrency**: PostgreSQL is better at handling multiple simultaneous users/requests.
 *   **Data Integrity**: PostgreSQL is stricter with types and constraints.
 *   **Scalability**: Easier to scale in a production environment (like Cloud SQL or AWS RDS).
+
+---
+
+## 6. Database Backup and Restore
+
+We configured a shell utility to easily perform backups and restores.
+
+### A. Automated Backup Script
+Run the automated script in the root directory:
+```bash
+./scripts/backup-db.sh
+```
+*   **What it does**: Reads database configurations from `.env` and exports a compressed custom dump file to `exports/leafcloud3_backup_YYYYMMDD_HHMMSS.dump`.
+
+### B. Manual Backup Commands
+*   **Custom Compressed Format (Recommended)**:
+    ```bash
+    pg_dump -h localhost -p 5432 -U fil -F c -b -v -f exports/leafcloud3_backup.dump leafcloud3
+    ```
+*   **Plain Text SQL Format**:
+    ```bash
+    pg_dump -h localhost -p 5432 -U fil -F p -v -f exports/leafcloud3_backup.sql leafcloud3
+    ```
+
+### C. Restoring from a Backup
+*   **For Custom Compressed Format (`.dump`)**:
+    1. Recreate the database clean:
+       ```bash
+       dropdb -h localhost -U fil leafcloud3
+       createdb -h localhost -U fil leafcloud3
+       ```
+    2. Run `pg_restore`:
+       ```bash
+       pg_restore -h localhost -p 5432 -U fil -d leafcloud3 -v exports/leafcloud3_backup_XXXX.dump
+       ```
+*   **For Plain SQL Format (`.sql`)**:
+    ```bash
+    psql -h localhost -U fil -d leafcloud3 -f exports/leafcloud3_backup.sql
+    ```

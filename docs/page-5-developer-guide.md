@@ -58,3 +58,23 @@ The application logic resides in the `app/` directory, organized by layer:
 
 ## 5. Environment Setup
 Always copy `.env.example` to `.env` and configure your local settings before starting development.
+
+---
+
+## 6. Helper Scripts (`scripts/`)
+
+We maintain several utility scripts under the `scripts/` directory to simplify development tasks.
+
+### A. Executing Scripts
+To ensure scripts can find the `app` module, we resolved path issues by appending the root directory inside the scripts. You can run them directly from the project root:
+```bash
+python3 scripts/seed_predictions.py
+```
+
+### B. List of Available Scripts
+*   **[seed_predictions.py](../scripts/seed_predictions.py)**: Simulates IoT data uploads and generates predictions for testing the UI.
+*   **[verify-zeroconf.py](../scripts/verify-zeroconf.py)**: Tests network broadcasting and server discovery.
+*   **[run-query.sh](../scripts/run-query.sh)**: Executes PostgreSQL SQL statements directly on `leafcloud3`.
+*   **[backup-db.sh](../scripts/backup-db.sh)**: Backs up the database into the `exports/` folder.
+*   **[test-alert-trigger.py](../scripts/test-alert-trigger.py)**: Manually sets mock scale prediction inputs and prints the alert endpoint response for testing.
+

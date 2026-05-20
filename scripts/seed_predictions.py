@@ -1,3 +1,8 @@
+import sys
+import os
+# Auto-resolve parent directory to allow running the script directly
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import random
 import logging
 import shutil
@@ -76,7 +81,7 @@ def seed_daily_readings(count: int = 50):
         db.close()
 
 
-def seed_predictions(limit: int = 500):
+def seed_predictions(limit: int = 10000):
     """
     Generates dummy NPK predictions for daily_readings that don't have one yet.
     """
@@ -84,7 +89,7 @@ def seed_predictions(limit: int = 500):
     try:
         readings = db.query(DailyReading).outerjoin(NPKPrediction).filter(
             NPKPrediction.id == None
-        ).limit(limit).all()
+        ).order_by(DailyReading.timestamp.desc()).limit(limit).all()
 
         if not readings:
             logger.info("No readings found that need predictions.")
@@ -106,7 +111,11 @@ def seed_predictions(limit: int = 500):
                 predicted_p=round(p_micro, 4),
                 predicted_k=round(p_mix, 4),
                 confidence_score=round(max(p_water, p_npk, p_micro, p_mix), 2),
-                prediction_date=reading.timestamp
+                prediction_date=reading.timestamp,
+                macro_scale=round(random.uniform(0.5, 1.2), 2),
+                micro_scale=round(random.uniform(0.5, 1.2), 2),
+                predicted_class=random.choice(["Water", "NPK", "Micro", "Mix"]),
+                is_anomaly=random.choices([True, False], weights=[0.05, 0.95])[0]
             )
             db.add(new_prediction)
 
@@ -122,4 +131,4 @@ def seed_predictions(limit: int = 500):
 
 if __name__ == "__main__":
     seed_daily_readings(count=50)
-    seed_predictions(limit=500)
+    seed_predictions()

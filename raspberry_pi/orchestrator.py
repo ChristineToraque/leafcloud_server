@@ -183,6 +183,28 @@ class Orchestrator:
                 # Check if all required sensor values are present
                 required_keys = ["ec", "ph", "temperature", "image_path"]
                 if all(k in payload for k in required_keys):
+                    # Check calibration status from the server (mobile toggle)
+                    is_calibrating = False
+                    try:
+                        calib_url = f"{self.server_url}/api/v1/calibration/"
+                        calib_response = requests.get(calib_url, timeout=3.0)
+                        if calib_response.status_code == 200:
+                            for cal in calib_response.json():
+                                if cal.get("is_calibrating") is True:
+                                    is_calibrating = True
+                                    break
+                    except Exception as e:
+                        # Fall back to False if connection fails
+                        pass
+
+                    if is_calibrating:
+                        current_time = time.time()
+                        if not hasattr(self, "_last_calibration_print") or current_time - self._last_calibration_print >= 10:
+                            print("⚠️ [Orchestrator] Calibration mode is active on the server. Suspending uploads...")
+                            self._last_calibration_print = current_time
+                        fcntl.flock(f, fcntl.LOCK_UN)
+                        return
+
                     active_tank_id, upload_interval = self.resolve_tank_config()
                     current_time = time.time()
                     

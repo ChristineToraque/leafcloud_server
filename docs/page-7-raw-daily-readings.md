@@ -1,3 +1,5 @@
+[Prev](./page-6-daily-readings.md) | [Next](./page-8-experiments.md)
+
 # Database Model: **Cleaned Daily Readings** (Legacy Reference)
 
 This document describes the `cleaned_daily_readings` table, which is now a **legacy/archive** table.

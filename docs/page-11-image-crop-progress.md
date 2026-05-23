@@ -1,3 +1,5 @@
+[Prev](./page-5-developer-guide.md) | [Next](./)
+
 # Database Model: **Image Crop Progress**
 
 This document explains the schema and purpose of the `image_crop_progress` table.

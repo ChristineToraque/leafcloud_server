@@ -1,3 +1,5 @@
+[Prev](./page-7-raw-daily-readings.md) | [Next](./page-9-image-crops.md)
+
 # Database Model: **Experiments**
 
 This document explains the schema and purpose of the `experiments` table.

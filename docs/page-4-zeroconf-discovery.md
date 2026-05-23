@@ -1,3 +1,5 @@
+[Prev](./page-3-migrations-alembic.md) | [Next](./page-5-developer-guide.md)
+
 # Network Discovery: **Zeroconf (mDNS)**
 
 This document explains the implementation of the Zeroconf (mDNS) service discovery system.

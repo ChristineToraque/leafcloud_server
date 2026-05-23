@@ -1,3 +1,6 @@
+[Prev](./page-2-database-setup.md) | [Next](./page-4-zeroconf-discovery.md)
+
+
 # Database Migrations: **Alembic**
 
 This document explains how to manage database schema changes using **Alembic**.

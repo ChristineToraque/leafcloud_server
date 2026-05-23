@@ -1,3 +1,5 @@
+[Prev](./page-1-login.md) | [Next](./page-3-migrations-alembic.md)
+
 # PostgreSQL Database Setup: `leafcloud3`
 
 This document details the setup and migration from SQLite to **PostgreSQL**.

@@ -1,3 +1,5 @@
+[Next](./page-2-database-setup.md)
+
 # Authentication System: `POST /auth/login`
 
 This document explains the authentication system implemented for LeafCloud Server V2.

@@ -1,3 +1,5 @@
+[Prev](./page-8-experiments.md) | [Next](./page-10-npk-predictions.md)
+
 # Database Model: **Image Crops**
 
 This document explains the schema and purpose of the `image_crops` table.

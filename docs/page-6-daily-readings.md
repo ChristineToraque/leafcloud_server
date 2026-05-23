@@ -1,3 +1,5 @@
+[Prev](./page-5-developer-guide.md) | [Next](./page-7-raw-daily-readings.md)
+
 # Database Model: **Daily Readings**
 
 This document explains the schema and purpose of the `daily_readings` table.

@@ -1,3 +1,5 @@
+[Prev](./page-4-zeroconf-discovery.md) | [Next](./page-6-daily-readings.md)
+
 # Developer Guide: LeafCloud Server V2 Architecture
 
 Welcome to the LeafCloud Server V2 codebase. This project has been structured following **SOLID principles** and **FastAPI best practices** to ensure scalability and maintainability.

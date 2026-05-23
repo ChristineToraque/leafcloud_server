@@ -6,11 +6,11 @@ class Settings(BaseSettings):
 
     # Database Configuration
     DATABASE_URL: str = "sqlite:///./sql_app.db"
-    DB_USER: str = "fil"
+    DB_USER: str = "tin"
     DB_PASSWORD: str = ""
     DB_HOST: str = "localhost"
     DB_PORT: int = 5432
-    DB_NAME: str = "leafcloud3"
+    DB_NAME: str = "leafcloud"
 
     # Security & JWT
     SECRET_KEY: str = "your-super-secret-key-change-this-in-production"
@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     OUTPUT_DIR: str = "cropped_dataset"
     CROP_SIZE: int = 224
     GREEN_THRESHOLD: float = 30.0
-    AI_MODEL_PATH: str = "leafcloud_sensor_boost_20260516_1004.keras"
+    AI_MODEL_PATH: str = "leafcloud_multimodal_v3_20260520_1920.keras"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

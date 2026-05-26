@@ -44,9 +44,24 @@ def get_tank_dashboard(tank_id: int, request: Request, db: Session = Depends(get
         NPKPrediction.daily_reading_id == latest_reading.id
     ).first()
 
-    # Default scales if AI hasn't run yet
-    macro_scale = prediction.macro_scale if prediction and prediction.macro_scale is not None else 1.0
-    micro_scale = prediction.micro_scale if prediction and prediction.micro_scale is not None else 1.0
+    predicted_class = prediction.predicted_class if prediction and prediction.predicted_class else "Unknown"
+
+    # IMPLEMENT CLASSIFICATION LOOKUP LOGIC (Bypass Regression)
+    if predicted_class == "Mix":
+        macro_scale, micro_scale = 1.0, 1.0
+        profile = "Balanced Mix"
+    elif predicted_class == "NPK":
+        macro_scale, micro_scale = 1.0, 0.0
+        profile = "Macro-Leaning Blend"
+    elif predicted_class == "Micro":
+        macro_scale, micro_scale = 0.0, 1.0
+        profile = "Micro-Leaning Blend"
+    elif predicted_class == "Water":
+        macro_scale, micro_scale = 0.0, 0.0
+        profile = "Water Only (No Nutrients)"
+    else:
+        macro_scale, micro_scale = 1.0, 1.0
+        profile = "Balanced"
 
     # 4. PERFORM DYNAMIC MATH
     # Grams = (Scaling Index * Target Dosage mL/L * Tank Volume L) * (NPK % / 100)
@@ -63,41 +78,31 @@ def get_tank_dashboard(tank_id: int, request: Request, db: Session = Depends(get
     p_from_micro = (micro_scale * micro_weight_total) * (tank.micro_p_pct / 100)
     k_from_micro = (micro_scale * micro_weight_total) * (tank.micro_k_pct / 100)
 
-    # 5. Determine Profile Status and Advisory
-    if prediction and prediction.predicted_class and prediction.predicted_class != "Unknown":
-        profile_map = {
-            "Water": "Water Only (No Nutrients)",
-            "NPK": "Macro-Leaning Blend",
-            "Micro": "Micro-Leaning Blend",
-            "Mix": "Balanced Mix"
-        }
-        profile = profile_map.get(prediction.predicted_class, "Balanced")
-    else:
-        # Fallback math if AI hasn't classified it yet
-        profile = "Balanced"
-        if macro_scale > micro_scale + 0.3:
-            profile = "Macro-Leaning Blend"
-        elif micro_scale > macro_scale + 0.3:
-            profile = "Micro-Leaning Blend"
-    
-    # 6. Generate Advisory & Alert
+    # 5. Convert Physical Mass (Grams) to Concentration (PPM)
     total_grams = n_from_macro + p_from_macro + k_from_macro + n_from_micro + p_from_micro + k_from_micro
-    
-    if prediction and prediction.is_anomaly:
+
+    # 1 mg/L = 1 PPM. Multiply grams by 1000 to get mg, then divide by Liters safely.
+    vol = tank.water_volume_liters
+    n_ppm = ((n_from_macro + n_from_micro) * 1000) / vol if vol > 0 else 0
+    p_ppm = ((p_from_macro + p_from_micro) * 1000) / vol if vol > 0 else 0
+    k_ppm = ((k_from_macro + k_from_micro) * 1000) / vol if vol > 0 else 0
+    total_ppm = (total_grams * 1000) / vol if vol > 0 else 0
+
+    if prediction and getattr(prediction, 'is_anomaly', False):
         advisory_sum = "AI Sensor Anomaly Detected"
-        advisory_exp = f"Conflicting data! The AI classified this tank visually as '{prediction.predicted_class}' but regression estimated different physical levels (Macro: {macro_scale:.1f}, Micro: {micro_scale:.1f})."
+        advisory_exp = f"Conflicting data! The AI classified this tank visually as '{predicted_class}' but physical sensors read 0."
         advisory_act = "Please manually inspect the tank, check the nutrient solution, and recalibrate your pH/EC sensors."
     elif macro_scale >= 0.9 and micro_scale >= 0.9:
         advisory_sum = "Optimal Nutrient Balance"
-        advisory_exp = f"Your {tank.tank_name} has a stable concentration of approximately {round(total_grams, 1)}g of total NPK. The plants are currently in a high-nutrition environment."
+        advisory_exp = f"Your {tank.tank_name} has a stable concentration of approximately {round(total_ppm)} PPM (Total NPK). The plants are currently in a high-nutrition environment."
         advisory_act = "No immediate action required. Maintain current environmental conditions."
     elif macro_scale < 0.7 or micro_scale < 0.7:
         advisory_sum = "Nutrient Depletion Detected"
-        advisory_exp = f"Nutrient levels have dropped significantly to {int(min(macro_scale, micro_scale)*100)}% of your target dosage. There is only {round(total_grams, 1)}g of total nutrients remaining."
+        advisory_exp = f"Nutrient levels have dropped significantly. There is only {round(total_ppm)} PPM of total nutrients remaining."
         advisory_act = "Follow the Top-up instructions below to restore the optimal nutrient balance."
     else:
         advisory_sum = "Moderate Concentration"
-        advisory_exp = f"Nutrients are at stable but declining levels ({int(min(macro_scale, micro_scale)*100)}%). Total NPK mass is {round(total_grams, 1)}g."
+        advisory_exp = f"Nutrients are at stable but declining levels. Total NPK concentration is {round(total_ppm)} PPM."
         advisory_act = "Monitor closely. Top-up may be required within the next 24-48 hours."
 
     alert = None
@@ -128,10 +133,10 @@ def get_tank_dashboard(tank_id: int, request: Request, db: Session = Depends(get
             status="Safe Range" if 5.5 <= latest_reading.ph <= 6.5 else "Action Needed"
         ),
         estimated_nutrients=NutrientEstimation(
-            n_grams=round(n_from_macro + n_from_micro, 2),
-            p_grams=round(p_from_macro + p_from_micro, 2),
-            k_grams=round(k_from_macro + k_from_micro, 2),
-            total_estimated_grams=round(total_grams, 2)
+            n_ppm=round(n_ppm, 1),
+            p_ppm=round(p_ppm, 1),
+            k_ppm=round(k_ppm, 1),
+            total_estimated_ppm=round(total_ppm, 1)
         ),
         advisory=AdvisoryInsight(
             summary=advisory_sum,

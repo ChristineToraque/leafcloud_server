@@ -9,11 +9,11 @@ class TelemetryData(BaseModel):
     status: str
 
 class NutrientEstimation(BaseModel):
-    n_grams: float
-    p_grams: float
-    k_grams: float
-    total_estimated_grams: float
-    unit: str = "grams"
+    n_ppm: float
+    p_ppm: float
+    k_ppm: float
+    total_estimated_ppm: float
+    unit: str = "ppm"
 
 class AdvisoryInsight(BaseModel):
     summary: str # e.g. "Optimal Balance" or "Nutrient Depletion"

@@ -26,10 +26,12 @@ When the user fills out the settings form and clicks "Save":
   "macro_n_pct": 8.0,
   "macro_p_pct": 15.0,
   "macro_k_pct": 36.0,
+  "macro_density": 1.0,
   "micro_brand_name": "NutriHydro",
   "micro_n_pct": 5.0,
   "micro_p_pct": 10.0,
   "micro_k_pct": 15.0,
+  "micro_density": 1.0,
   "target_macro_dosage_mll": 2.0,
   "target_micro_dosage_mll": 1.5,
   "is_active": true

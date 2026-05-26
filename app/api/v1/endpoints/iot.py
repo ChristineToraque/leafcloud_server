@@ -64,16 +64,16 @@ def get_tank_dashboard(tank_id: int, request: Request, db: Session = Depends(get
         profile = "Balanced"
 
     # 4. PERFORM DYNAMIC MATH
-    # Grams = (Scaling Index * Target Dosage mL/L * Tank Volume L) * (NPK % / 100)
+    # Grams = (Scaling Index * Target Dosage mL/L * Tank Volume L * Density g/mL) * (NPK % / 100)
     
     # Calculate Macro Contribution
-    macro_weight_total = tank.target_macro_dosage_mll * tank.water_volume_liters
+    macro_weight_total = tank.target_macro_dosage_mll * tank.water_volume_liters * tank.macro_density
     n_from_macro = (macro_scale * macro_weight_total) * (tank.macro_n_pct / 100)
     p_from_macro = (macro_scale * macro_weight_total) * (tank.macro_p_pct / 100)
     k_from_macro = (macro_scale * macro_weight_total) * (tank.macro_k_pct / 100)
 
     # Calculate Micro Contribution
-    micro_weight_total = tank.target_micro_dosage_mll * tank.water_volume_liters
+    micro_weight_total = tank.target_micro_dosage_mll * tank.water_volume_liters * tank.micro_density
     n_from_micro = (micro_scale * micro_weight_total) * (tank.micro_n_pct / 100)
     p_from_micro = (micro_scale * micro_weight_total) * (tank.micro_p_pct / 100)
     k_from_micro = (micro_scale * micro_weight_total) * (tank.micro_k_pct / 100)

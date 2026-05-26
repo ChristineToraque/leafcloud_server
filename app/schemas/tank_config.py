@@ -10,11 +10,13 @@ class TankConfigBase(BaseModel):
     macro_n_pct: float = Field(..., ge=0, le=100)
     macro_p_pct: float = Field(..., ge=0, le=100)
     macro_k_pct: float = Field(..., ge=0, le=100)
+    macro_density: float = Field(default=1.0, gt=0)
     
     micro_brand_name: Optional[str] = None
     micro_n_pct: float = Field(..., ge=0, le=100)
     micro_p_pct: float = Field(..., ge=0, le=100)
     micro_k_pct: float = Field(..., ge=0, le=100)
+    micro_density: float = Field(default=1.0, gt=0)
     
     target_macro_dosage_mll: float = Field(..., ge=0)
     target_micro_dosage_mll: float = Field(..., ge=0)
@@ -33,10 +35,12 @@ class TankConfigUpdate(BaseModel):
     macro_n_pct: Optional[float] = Field(None, ge=0, le=100)
     macro_p_pct: Optional[float] = Field(None, ge=0, le=100)
     macro_k_pct: Optional[float] = Field(None, ge=0, le=100)
+    macro_density: Optional[float] = Field(None, gt=0)
     micro_brand_name: Optional[str] = None
     micro_n_pct: Optional[float] = Field(None, ge=0, le=100)
     micro_p_pct: Optional[float] = Field(None, ge=0, le=100)
     micro_k_pct: Optional[float] = Field(None, ge=0, le=100)
+    micro_density: Optional[float] = Field(None, gt=0)
     target_macro_dosage_mll: Optional[float] = Field(None, ge=0)
     target_micro_dosage_mll: Optional[float] = Field(None, ge=0)
     upload_interval_seconds: Optional[int] = Field(None, ge=10)

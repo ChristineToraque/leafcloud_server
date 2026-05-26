@@ -76,7 +76,7 @@ The backend performs the following calculation on-the-fly:
 1.  **AI Output**: Gets `macro_scale` (e.g., 0.5) and `micro_scale` from the latest `npk_predictions` row.
 2.  **Config**: Gets `target_macro_dosage_mll` (e.g., 2.0 mL/L) and `water_volume_liters` (e.g., 6.0 L) from `tank_configs`.
 3.  **Physical Amount**:
-    - `Grams = (Scale * Dosage * Volume) * (NPK % / 100)`
+    - `Grams = (Scale * Dosage * Volume * Density) * (NPK % / 100)`
     - `Top-up mL = (1.0 - Scale) * Dosage * Volume`
 
 ---

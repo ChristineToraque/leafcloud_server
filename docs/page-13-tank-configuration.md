@@ -16,10 +16,12 @@ The `tank_configs` table stores all physical and chemical parameters needed for 
 | `macro_n_pct` | Float | Nitrogen % in the Macro fertilizer. |
 | `macro_p_pct` | Float | Phosphate % in the Macro fertilizer. |
 | `macro_k_pct` | Float | Potash % in the Macro fertilizer. |
+| `macro_density` | Float | Density of the Macro fertilizer (g/mL, default 1.0). |
 | `micro_brand_name` | String(100) | Brand of the Micro fertilizer. |
 | `micro_n_pct` | Float | Nitrogen % in the Micro fertilizer. |
 | `micro_p_pct` | Float | Phosphate % in the Micro fertilizer. |
 | `micro_k_pct` | Float | Potash % in the Micro fertilizer. |
+| `micro_density` | Float | Density of the Micro fertilizer (g/mL, default 1.0). |
 | `target_macro_dosage_mll` | Float | Baseline dosage for Macro (mL per Liter). |
 | `target_micro_dosage_mll` | Float | Baseline dosage for Micro (mL per Liter). |
 | `is_active` | Boolean | Whether this configuration is currently active. |

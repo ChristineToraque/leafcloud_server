@@ -1,3 +1,5 @@
+[Prev](./page-15-iot-pi-integration.md) | [Next](./page-17-static-image-serving.md)
+
 # Monitoring Dashboard: **Farmer's Interface**
 
 This guide explains how the mobile app retrieves the real-time monitoring data for the farmer's dashboard.
@@ -94,6 +96,3 @@ const refreshDashboard = async (tankId) => {
 };
 ```
 
----
-
-[Prev](./page-15-iot-pi-integration.md) | [Next](./page-17-static-image-serving.md)

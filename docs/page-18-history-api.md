@@ -1,3 +1,5 @@
+[Prev](./page-17-static-image-serving.md) | [Next](./page-19-alert-polling.md)
+
 # Tank Reading History: **Time-Series API**
 
 This guide explains how the mobile app fetches historical sensor readings and AI predictions for a specific tank.
@@ -136,6 +138,4 @@ This endpoint follows the SOLID principle — business logic is fully isolated i
 | Service | `app/services/history_service.py` | DB query, row mapping, URL building |
 | Endpoint | `app/api/v1/endpoints/iot.py` | Input validation, tank lookup, delegates to service |
 
----
 
-[Prev](./page-17-static-image-serving.md) | [Next](./page-19-alert-polling.md)

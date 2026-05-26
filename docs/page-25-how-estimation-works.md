@@ -1,3 +1,5 @@
+[Prev](./page-24-calibration-api.md) | [Next](./page-26-nutrient-classifier-training-summary.md)
+
 That is a great question! Even though the ultimate goal is to get the exact numerical estimate (the regression output), we still train the AI to classify the category first (or at the exact same time) for three very important reasons.
 
 In machine learning, this technique is called Multi-Task Learning (MTL). Here is why it makes your model much better:
@@ -64,7 +66,3 @@ loss={'clf_output': 'categorical_crossentropy', 'reg_output': 'mse'}
 Every time the AI made a guess during training, the mse function compared its guess to your CONCENTRATION_MAP targets (like [2.0, 0.0]). If the AI guessed [0.5, 1.5], the mse punished the AI heavily, forcing it to adjust its internal math (weights) so that next time it sees those specific EC readings and leaf colors, it outputs numbers closer to 2.0 and 0.0.
 
 Eventually, it learns the exact mathematical relationship between the raw EC/pH/Image data and the true continuous concentration of the nutrients!
-
----
-
-[Prev](./page-24-calibration-api.md) | [Next](./page-26-nutrient-classifier-training-summary.md)

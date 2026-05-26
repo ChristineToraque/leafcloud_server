@@ -1,3 +1,5 @@
+[Prev](./page-26-nutrient-classifier-training-summary.md) | [Next](./page-28-upload-interval-configuration.md)
+
 # Camera Streaming and Terminal Visualization
 
 This guide explains how to stream the Raspberry Pi camera feed over the network and view it either as a high-quality GUI window or directly inside your terminal as live ASCII/TCT art.
@@ -84,7 +86,3 @@ On your Raspberry Pi:
 python3 raspberry_pi/ascii_stream.py
 ```
 *(Press `Ctrl+C` to terminate the stream).*
-
----
-
-[Prev](./page-26-nutrient-classifier-training-summary.md) | [Next](./page-28-upload-interval-configuration.md)

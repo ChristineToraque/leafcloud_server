@@ -1,3 +1,5 @@
+[Prev](./page-21-full-stack-ai-integration.md) | [Next](./page-23-sensor-calibration.md)
+
 # Reference: **System Message Definitions**
 
 This document tracks where different text messages, alerts, and dashboard labels are defined in the codebase.
@@ -32,7 +34,3 @@ The visual status of what is currently in the tank.
 Warnings printed to the server terminal during AI processing.
 - **Location**: `app/services/ai_service.py`
 - **Example**: `logger.warning(f"Anomaly Detected! AI sees 'Water' but regression predicted high nutrients...")`
-
----
-
-[Prev](./page-21-full-stack-ai-integration.md) | [Next](./page-23-sensor-calibration.md)

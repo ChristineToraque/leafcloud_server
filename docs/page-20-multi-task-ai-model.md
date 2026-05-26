@@ -1,3 +1,5 @@
+[Prev](./page-19-alert-polling.md) | [Next](./page-21-full-stack-ai-integration.md)
+
 # AI Model: **Multi-Task Nutrient Estimation**
 
 This document explains the architecture and logic of the Multi-Task AI model implemented in `scripts/nutrient_classifier_v2.py`.
@@ -125,6 +127,4 @@ Because the classification says "Water" but the regression says the tank is almo
 
 In summary, the Classification head teaches the model context (what it is looking at), which allows the Regression head to be highly accurate with its numbers (how much is there).
 
----
 
-[Prev](./page-19-alert-polling.md) | [Next](./page-21-full-stack-ai-integration.md)

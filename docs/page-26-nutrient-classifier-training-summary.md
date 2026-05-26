@@ -1,3 +1,5 @@
+[Prev](./page-25-how-estimation-works.md) | [Next](./page-27-camera-streaming.md)
+
 # 🧠 Nutrient Classifier v2 Training Process
 
 A structured summary of the Multi-Task AI training workflow and configuration for `scripts/nutrient_classifier_v2.py`, based on the codebase documentation in [page-20-multi-task-ai-model.md](page-20-multi-task-ai-model.md).
@@ -63,7 +65,3 @@ During training, the continuous **Regression Head** is trained using the followi
 1. **Shared Learning Benefit**: By forcing the model to learn both the visual categories and numerical levels, the Classification task acts as a visual guide that makes the Regression model much more accurate.
 2. **Precision Tracking**: Instead of just saying a tank has "NPK", the regression model predicts decimal values (e.g., `1.98` $\rightarrow$ `1.45` $\rightarrow$ `0.60`) showing real-time depletion as plants absorb nutrients.
 3. **Safety Check (Anomaly Detection)**: If classification predicts `Water` but regression predicts high nutrients, the system flags a visual-sensor anomaly.
-
----
-
-[Prev](./page-25-how-estimation-works.md) | [Next](./page-27-camera-streaming.md)

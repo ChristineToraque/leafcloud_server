@@ -1,3 +1,5 @@
+[Prev](./page-23-ec-calibration-math.md) | [Next](./page-25-how-estimation-works.md)
+
 # API Reference: **Sensor Calibration**
 
 This document details the endpoints used to manage and check the calibration state of IoT sensors.
@@ -39,7 +41,3 @@ Based on the initial database seeding:
 
 ## 4. Usage in IoT Scripts
 The Raspberry Pi should poll these endpoints before recording data. If `is_calibrating` is `true` for a specific sensor, the script should skip data upload for that sensor to avoid corrupting the historical records.
-
----
-
-[Prev](./page-23-ec-calibration-math.md) | [Next](./page-25-how-estimation-works.md)

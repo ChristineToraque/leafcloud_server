@@ -1,3 +1,5 @@
+[Prev](./page-14-mobile-api-integration.md) | [Next](./page-16-dashboard-api.md)
+
 # IoT Integration: **Raspberry Pi to Server**
 
 This guide explains how your Raspberry Pi can upload sensor data and images to the LeafCloud Server V2.
@@ -89,6 +91,4 @@ python3 raspberry_pi/orchestrator.py
     -   Clears only the uploaded keys on success, allowing the cycle to repeat securely.
 6.  **Graceful Termination**: Captures `SIGINT` (Ctrl+C) and `SIGTERM` to safely terminate all child processes.
 
----
 
-[Prev](./page-14-mobile-api-integration.md) | [Next](./page-16-dashboard-api.md)

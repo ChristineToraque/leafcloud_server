@@ -1,3 +1,5 @@
+[Prev](./page-18-history-api.md) | [Next](./page-20-multi-task-ai-model.md)
+
 # Alert Polling: **Mobile Notification System**
 
 This guide explains how the mobile app polls for nutrient alerts and triggers local notifications without Firebase or WebSockets.
@@ -150,4 +152,4 @@ Polling at a 5-minute interval is sufficient for nutrient alerts since readings 
 
 ---
 
-[Prev](./page-18-history-api.md) | [Next](./page-20-multi-task-ai-model.md)
+

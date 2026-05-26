@@ -1,3 +1,5 @@
+[Prev](./page-20-multi-task-ai-model.md) | [Next](./page-22-message-definitions.md)
+
 # System Integration: **Multi-Task AI Model Execution & Dashboard**
 
 This document describes in detail how the LeafCloud backend loads and executes the trained multi-task, multimodal Keras models (`leafcloud_multimodal_v3_*.keras`, `leafcloud_sensor_boost_*.keras`) to generate nutrient estimations and anomalies.
@@ -156,6 +158,4 @@ If `is_anomaly` is set to `True`, the dashboard API overrides the advisory objec
 - **farmer_action**: `"Manual inspection and sensor recalibration required."`
 - The mobile app displays a warnings banner highlighting this state.
 
----
 
-[Prev](./page-20-multi-task-ai-model.md) | [Next](./page-22-message-definitions.md)

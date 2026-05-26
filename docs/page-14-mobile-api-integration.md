@@ -1,3 +1,5 @@
+[Prev](./page-13-tank-configuration.md) | [Next](./page-15-iot-pi-integration.md)
+
 # API Integration: **Mobile App to Tank Config**
 
 This guide explains how your mobile application (React Native, Flutter, etc.) can interact with the new Tank Configuration API.
@@ -110,6 +112,4 @@ Beyond tank configuration, the mobile app also consumes these endpoints:
 | `GET /api/v1/iot/history/{tank_id}` | page-18 | Time-series readings for charts and trends |
 | `GET /api/v1/iot/alert/{tank_id}` | page-19 | Lightweight poll for notification triggers |
 
----
 
-[Prev](./page-13-tank-configuration.md) | [Next](./page-15-iot-pi-integration.md)

@@ -1,3 +1,5 @@
+[Prev](./page-27-camera-streaming.md) | [Next](./page-29-dashboard-code-explanation.md)
+
 # Upload Interval Configuration
 
 This document explains how to configure and control the rate at which your Raspberry Pi uploads sensor readings and plant images to the LeafCloud Server.
@@ -63,7 +65,3 @@ You can also override this on a specific Pi by editing the local configuration:
     "upload_interval_seconds": 120
 }
 ```
-
----
-
-[Prev](./page-27-camera-streaming.md) | [Next](./page-29-dashboard-code-explanation.md)

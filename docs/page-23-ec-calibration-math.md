@@ -1,3 +1,5 @@
+[Prev](./page-23-sensor-calibration.md) | [Next](./page-24-calibration-api.md)
+
 # EC Calibration Math: Understanding the K-Value
 
 This document explains the mathematical formula and logic used for calibrating the EC (Electrical Conductivity) sensor in the Leafcloud system, specifically why we use the formula `target_ec / avg_ec_voltage`.
@@ -42,7 +44,3 @@ If a week later the sensor reads **0.300 Volts** in your nutrient tank, the math
 You might notice in the codebase that pH calibration is much more complicated, using multiple points (`CAL_POINTS`) and linear interpolation. 
 
 This is because pH sensors are not perfectly linear and their "zero" point drifts significantly over time and with temperature. Basic EC sensors are much more stable, so a simple **single-point calibration** (just finding that one multiplier) is usually perfectly accurate for hydroponics!
-
----
-
-[Prev](./page-23-sensor-calibration.md) | [Next](./page-24-calibration-api.md)

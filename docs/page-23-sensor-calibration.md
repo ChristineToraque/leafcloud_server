@@ -1,3 +1,5 @@
+[Prev](./page-22-message-definitions.md) | [Next](./page-23-ec-calibration-math.md)
+
 # Database Model: **Sensor Calibration**
 
 This document explains the schema and purpose of the `sensor_calibrations` table, which tracks the real-time calibration state of the IoT sensors.
@@ -35,6 +37,4 @@ The mobile app can use this table to:
 1.  **Display a Maintenance Mode UI**: Show a "Calibrating..." spinner or status on the dashboard when the farmer is performing maintenance.
 2.  **Safety Lock**: Prevent the farmer from triggering a "Top-up" action if the sensors are not yet ready.
 
----
 
-[Prev](./page-22-message-definitions.md) | [Next](./page-23-ec-calibration-math.md)

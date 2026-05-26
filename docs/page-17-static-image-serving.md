@@ -1,3 +1,5 @@
+[Prev](./page-16-dashboard-api.md) | [Next](./page-18-history-api.md)
+
 # Static File Serving: **Plant Images**
 
 This document explains how plant images uploaded by the Raspberry Pi are stored and served over HTTP.
@@ -43,6 +45,3 @@ image_url = str(request.base_url).rstrip("/") + "/" + latest_reading.image_path
 ```
 This means the URL automatically reflects the correct host and port regardless of the deployment environment.
 
----
-
-[Prev](./page-16-dashboard-api.md) | [Next](./page-18-history-api.md)

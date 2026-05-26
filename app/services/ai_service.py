@@ -65,13 +65,14 @@ def process_iot_data_background(cleaned_reading_id: int):
                 final_path = os.path.join(dest_folder, final_name)
                 shutil.move(temp_path, final_path)
                 
-                # Save crop record
-                new_crop = ImageCrop(
-                    daily_reading_id=reading.id,
-                    crop_path=final_path.replace("\\", "/"),
-                    crop_type=crop_type
-                )
-                db.add(new_crop)
+                # NOTE: Gi-comment out ang pag-save sa DB kay i-delete ra nato ang file taod-taod
+                # para dili mapuno ang server, ug para walay broken image links sa DB.
+                # new_crop = ImageCrop(
+                #     daily_reading_id=reading.id,
+                #     crop_path=final_path.replace("\\", "/"),
+                #     crop_type=crop_type
+                # )
+                # db.add(new_crop)
                 valid_crops.append((crop_img, final_path))
             else:
                 os.remove(temp_path)
@@ -150,6 +151,13 @@ def process_iot_data_background(cleaned_reading_id: int):
             db.add(prediction_record)
             db.commit()
             logger.info(f"AI Prediction complete for reading {reading.id}")
+
+        # --- CLEANUP STRATEGY: Delete cropped images to save server disk space ---
+        logger.info(f"Cleaning up {len(valid_crops)} crop images from server...")
+        for _, crop_file_path in valid_crops:
+            if os.path.exists(crop_file_path):
+                os.remove(crop_file_path)
+        # --------------------------------------------------------------------------
 
     except Exception as e:
         logger.error(f"Background processing error: {e}")

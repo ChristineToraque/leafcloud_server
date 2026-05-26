@@ -32,8 +32,9 @@ def seed_daily_readings(count: int = 50):
             logger.error(f"No source images found in {source_dir}")
             return
 
-        tanks = db.query(TankConfig).all()
-        if not tanks:
+        # tanks = db.query(TankConfig).all()
+        tank = db.query(TankConfig).filter(TankConfig.id == 1).first()
+        if not tank:
             logger.error("No tanks found in DB")
             return
 
@@ -41,7 +42,6 @@ def seed_daily_readings(count: int = 50):
         created = 0
 
         for _ in range(count):
-            tank = tanks[0]  # always seed for the first tank when testing
             source_image = random.choice(all_images)
 
             now = datetime.now()

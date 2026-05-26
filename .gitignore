@@ -33,3 +33,8 @@ leafcloud_multimodal_v3_20260520_1920.keras
 .b76aa03f-bf83-4163-8267-160f08049437
 .antigravitycli/
 .scripts
+
+dual_ads.py
+project.py
+leafcloud3_dump_20260524_231537.dump
+.scripts-test

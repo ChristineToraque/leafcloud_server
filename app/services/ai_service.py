@@ -119,9 +119,9 @@ def process_iot_data_background(cleaned_reading_id: int):
             predicted_class = LABEL_LIST[class_idx]
             confidence = float(avg_clf[class_idx])
             
-            # Regression Output
-            macro_scale = float(avg_reg[0])
-            micro_scale = float(avg_reg[1])
+            # Regression Output — clamp to [0.0, 1.0] since model has no bounded output layer
+            macro_scale = float(np.clip(avg_reg[0], 0.0, 1.0))
+            micro_scale = float(np.clip(avg_reg[1], 0.0, 1.0))
             
             # Sanity Check (Anomaly Detection)
             is_anomaly = False

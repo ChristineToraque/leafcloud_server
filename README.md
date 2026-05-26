@@ -88,6 +88,7 @@ For detailed guides, please refer to our documentation pages:
 27. **[Nutrient Classifier Training](docs/page-26-nutrient-classifier-training-summary.md)** - Training procedures and summary of the ML classifier.
 28. **[Camera Streaming & Terminal Visualization](docs/page-27-camera-streaming.md)** - How to stream video and view it in a terminal or GUI.
 29. **[Upload Interval Configuration](docs/page-28-upload-interval-configuration.md)** - Dynamic upload cooldown configuration and API schemas.
+30. **[Dashboard Code Explanation](docs/page-29-dashboard-code-explanation.md)** - Line-by-line code explanation for the monitoring dashboard endpoint.
 
 ---
 

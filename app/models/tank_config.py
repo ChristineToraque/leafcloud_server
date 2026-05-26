@@ -24,7 +24,7 @@ class TankConfig(Base):
     
     # Target Recipe Dosages (mL/L)
     target_macro_dosage_mll = Column(Float, nullable=False)
-    target_micro_dosage_mll = Column(Float, nullable=False)
+    target_micro_dosage_mll = Column(Float, nullable=False) 
     
     upload_interval_seconds = Column(Integer, nullable=False, server_default="60")
     

@@ -34,6 +34,10 @@ class DashboardResponse(BaseModel):
     image_url: str
     health_status: str # e.g., HEALTHY, NUTRIENT DEFICIENT
     profile_detected: str # e.g., Macro-Leaning Blend
+    predicted_class: str # e.g., Mix, NPK, Micro, Water
+    is_anomaly: bool
+    macro_scale: float
+    micro_scale: float
     
     telemetry: TelemetryData
     estimated_nutrients: NutrientEstimation

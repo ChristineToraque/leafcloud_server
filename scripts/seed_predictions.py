@@ -13,6 +13,7 @@ from app.core.database import SessionLocal
 from app.core.config import settings
 from app.models import DailyReading, NPKPrediction
 from app.models.tank_config import TankConfig
+from app.services.ai_service import process_iot_data_background
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
@@ -40,14 +41,10 @@ def seed_daily_readings(count: int = 50):
         created = 0
 
         for _ in range(count):
-            tank = random.choice(tanks)
+            tank = tanks[0]  # always seed for the first tank when testing
             source_image = random.choice(all_images)
 
-            now = datetime.now() - timedelta(
-                days=random.randint(0, 30),
-                hours=random.randint(0, 23),
-                minutes=random.randint(0, 59)
-            )
+            now = datetime.now()
             date_str = now.strftime("%Y-%m-%d")
             timestamp_str = now.strftime("%Y%m%d_%H%M%S")
 
@@ -81,54 +78,28 @@ def seed_daily_readings(count: int = 50):
         db.close()
 
 
-def seed_predictions(limit: int = 10000):
+def seed_predictions():
     """
-    Generates dummy NPK predictions for daily_readings that don't have one yet.
+    Runs the real AI model on the latest daily_reading that doesn't have a prediction yet.
     """
     db = SessionLocal()
     try:
-        readings = db.query(DailyReading).outerjoin(NPKPrediction).filter(
+        reading = db.query(DailyReading).outerjoin(NPKPrediction).filter(
             NPKPrediction.id == None
-        ).order_by(DailyReading.timestamp.desc()).limit(limit).all()
+        ).order_by(DailyReading.timestamp.desc()).first()
 
-        if not readings:
+        if not reading:
             logger.info("No readings found that need predictions.")
             return
 
-        logger.info(f"Seeding {len(readings)} predictions...")
-
-        for reading in readings:
-            p_water = random.uniform(0, 0.2)
-            p_npk = random.uniform(0.3, 0.8)
-            p_micro = random.uniform(0, 0.3)
-            p_mix = 1.0 - (p_water + p_npk + p_micro)
-            if p_mix < 0:
-                p_mix = 0.05
-
-            new_prediction = NPKPrediction(
-                daily_reading_id=reading.id,
-                predicted_n=round(p_npk, 4),
-                predicted_p=round(p_micro, 4),
-                predicted_k=round(p_mix, 4),
-                confidence_score=round(max(p_water, p_npk, p_micro, p_mix), 2),
-                prediction_date=reading.timestamp,
-                macro_scale=round(random.uniform(0.5, 1.2), 2),
-                micro_scale=round(random.uniform(0.5, 1.2), 2),
-                predicted_class=random.choice(["Water", "NPK", "Micro", "Mix"]),
-                is_anomaly=random.choices([True, False], weights=[0.05, 0.95])[0]
-            )
-            db.add(new_prediction)
-
-        db.commit()
-        logger.info("✅ Predictions seeded.")
-
-    except Exception as e:
-        logger.error(f"Error seeding predictions: {e}")
-        db.rollback()
+        logger.info(f"Running AI prediction for reading ID {reading.id}...")
     finally:
         db.close()
 
+    process_iot_data_background(reading.id)
+    logger.info("✅ AI prediction complete.")
+
 
 if __name__ == "__main__":
-    seed_daily_readings(count=50)
+    seed_daily_readings(count=1)
     seed_predictions()

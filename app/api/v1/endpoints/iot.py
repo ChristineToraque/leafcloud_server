@@ -44,24 +44,18 @@ def get_tank_dashboard(tank_id: int, request: Request, db: Session = Depends(get
         NPKPrediction.daily_reading_id == latest_reading.id
     ).first()
 
-    predicted_class = prediction.predicted_class if prediction and prediction.predicted_class else "Unknown"
+    # Regression scales drive the nutrient math
+    macro_scale = prediction.macro_scale if prediction and prediction.macro_scale is not None else 1.0
+    micro_scale = prediction.micro_scale if prediction and prediction.micro_scale is not None else 1.0
 
-    # IMPLEMENT CLASSIFICATION LOOKUP LOGIC (Bypass Regression)
-    if predicted_class == "Mix":
-        macro_scale, micro_scale = 1.0, 1.0
-        profile = "Balanced Mix"
-    elif predicted_class == "NPK":
-        macro_scale, micro_scale = 1.0, 0.0
-        profile = "Macro-Leaning Blend"
-    elif predicted_class == "Micro":
-        macro_scale, micro_scale = 0.0, 1.0
-        profile = "Micro-Leaning Blend"
-    elif predicted_class == "Water":
-        macro_scale, micro_scale = 0.0, 0.0
-        profile = "Water Only (No Nutrients)"
-    else:
-        macro_scale, micro_scale = 1.0, 1.0
-        profile = "Balanced"
+    # Classification output for display only (does not affect math)
+    predicted_class = prediction.predicted_class if prediction and prediction.predicted_class else "Unknown"
+    profile = {
+        "Mix": "Balanced Mix",
+        "NPK": "Macro-Leaning Blend",
+        "Micro": "Micro-Leaning Blend",
+        "Water": "Water Only (No Nutrients)",
+    }.get(predicted_class, "Unknown")
 
     # 4. PERFORM DYNAMIC MATH
     # Grams = (Scaling Index * Target Dosage mL/L * Tank Volume L * Density g/mL) * (NPK % / 100)
@@ -126,6 +120,10 @@ def get_tank_dashboard(tank_id: int, request: Request, db: Session = Depends(get
         image_url=str(request.base_url).rstrip("/") + "/" + latest_reading.image_path.replace("\\", "/"),
         health_status="HEALTHY" if macro_scale > 0.8 else "NUTRIENT DEFICIENT",
         profile_detected=profile,
+        predicted_class=predicted_class,
+        is_anomaly=prediction.is_anomaly if prediction and prediction.is_anomaly is not None else False,
+        macro_scale=macro_scale,
+        micro_scale=micro_scale,
         telemetry=TelemetryData(
             ph=latest_reading.ph,
             ec=latest_reading.ec,

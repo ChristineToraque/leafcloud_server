@@ -4,6 +4,7 @@ from app.core.database import get_db
 from app.core import security
 from app.models.user import User
 from app.schemas.auth import LoginRequest, LoginResponse
+from app.schemas.user import UserCreate, UserResponse
 
 router = APIRouter()
 
@@ -32,3 +33,26 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
             "email": user.email
         }
     }
+
+@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+def register(request: UserCreate, db: Session = Depends(get_db)):
+    """Registers a new user."""
+    existing_user = db.query(User).filter(User.email == request.email).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email address already registered"
+        )
+    
+    hashed_password = security.get_password_hash(request.password)
+    
+    new_user = User(
+        name=request.name,
+        email=request.email,
+        hashed_password=hashed_password
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    
+    return new_user

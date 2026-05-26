@@ -84,3 +84,7 @@ On your Raspberry Pi:
 python3 raspberry_pi/ascii_stream.py
 ```
 *(Press `Ctrl+C` to terminate the stream).*
+
+---
+
+[Prev](./page-26-nutrient-classifier-training-summary.md) | [Next](./page-28-upload-interval-configuration.md)

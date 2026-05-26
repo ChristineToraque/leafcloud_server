@@ -1,4 +1,4 @@
-[Prev](./page-5-developer-guide.md) | [Next](./)
+[Prev](./page-10-npk-predictions.md) | [Next](./page-12-image-processing-logic.md)
 
 # Database Model: **Image Crop Progress**
 
@@ -34,3 +34,7 @@ Check processing status summary:
 ```bash
 ./scripts/run-query.sh "SELECT is_processed, count(*) FROM image_crop_progress GROUP BY is_processed;"
 ```
+
+---
+
+[Prev](./page-10-npk-predictions.md) | [Next](./page-12-image-processing-logic.md)

@@ -63,3 +63,7 @@ You can also override this on a specific Pi by editing the local configuration:
     "upload_interval_seconds": 120
 }
 ```
+
+---
+
+[Prev](./page-27-camera-streaming.md) | [Next](./page-29-dashboard-code-explanation.md)

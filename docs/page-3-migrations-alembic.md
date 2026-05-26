@@ -75,3 +75,7 @@ export PYTHONPATH=$PYTHONPATH:.
 1.  **Always backup** the database before running `upgrade head` in a production environment.
 2.  **Review**: Even with `--autogenerate`, always check the generated script as some complex changes (like renaming) might not be detected correctly.
 3.  **PYTHONPATH**: Ensure `PYTHONPATH=.` is set so Alembic can find your `app` module.
+
+---
+
+[Prev](./page-2-database-setup.md) | [Next](./page-4-zeroconf-discovery.md)

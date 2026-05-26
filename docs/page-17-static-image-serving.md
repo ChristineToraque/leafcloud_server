@@ -42,3 +42,7 @@ The upload endpoint stores the relative file path in `daily_readings.image_path`
 image_url = str(request.base_url).rstrip("/") + "/" + latest_reading.image_path
 ```
 This means the URL automatically reflects the correct host and port regardless of the deployment environment.
+
+---
+
+[Prev](./page-16-dashboard-api.md) | [Next](./page-18-history-api.md)

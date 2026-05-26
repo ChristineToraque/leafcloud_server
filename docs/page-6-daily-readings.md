@@ -41,3 +41,7 @@ npk_predictions (daily_reading_id → daily_readings.id)
 ```bash
 ./scripts/run-query.sh "SELECT id, timestamp, tank_id, status, is_new_data FROM daily_readings ORDER BY timestamp DESC LIMIT 5;"
 ```
+
+---
+
+[Prev](./page-5-developer-guide.md) | [Next](./page-7-raw-daily-readings.md)

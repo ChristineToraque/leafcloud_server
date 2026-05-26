@@ -1,3 +1,5 @@
+[Prev](./page-11-image-crop-progress.md) | [Next](./page-13-tank-configuration.md)
+
 # Image Processing Logic: `image_processor.py`
 
 This document explains how the raw images are segmented and filtered before being used by the AI.
@@ -44,3 +46,7 @@ python scripts/image_processor.py
 This table tracks every time a crop is discarded.
 -   `metric_value`: Stores the actual greenness percentage calculated.
 -   `reason`: Typically `low_greenness_crop`.
+
+---
+
+[Prev](./page-11-image-crop-progress.md) | [Next](./page-13-tank-configuration.md)

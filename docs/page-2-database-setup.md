@@ -128,3 +128,7 @@ Run the automated script in the root directory:
     ```bash
     psql -h localhost -U fil -d leafcloud3 -f exports/leafcloud3_backup.sql
     ```
+
+---
+
+[Prev](./page-1-login.md) | [Next](./page-3-migrations-alembic.md)

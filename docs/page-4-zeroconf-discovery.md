@@ -36,3 +36,7 @@ Or by using our provided verification script:
 
 ## 6. Dependencies
 *   `zeroconf`: The Python library used for mDNS broadcasting.
+
+---
+
+[Prev](./page-3-migrations-alembic.md) | [Next](./page-5-developer-guide.md)

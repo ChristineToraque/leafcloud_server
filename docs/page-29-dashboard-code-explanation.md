@@ -240,3 +240,7 @@ $$\text{Target Dosage (mL/L)} \times \text{Water Volume (L)} \times \text{Densit
 * **`image_url`**: Normalizes local file path backslashes and prefixes it with the root host path (`request.base_url`) to deliver a fully qualified absolute URL link accessible via a browser client.
 * **`health_status`**: Employs an inline conditional check declaring the tank `"HEALTHY"` if the macronutrient scale stays above $80\%$, otherwise categorizing it as `"NUTRIENT DEFICIENT"`.
 * **`telemetry.status`**: Runs an inline evaluation marking the status as `"Safe Range"` if pH falls securely within the $5.5$ to $6.5$ hydroponic target bounds.
+
+---
+
+[Prev](./page-28-upload-interval-configuration.md)

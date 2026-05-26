@@ -155,3 +155,7 @@ If `is_anomaly` is set to `True`, the dashboard API overrides the advisory objec
 - **explanation**: Inform the farmer that the visual analysis contradicts the sensor readings.
 - **farmer_action**: `"Manual inspection and sensor recalibration required."`
 - The mobile app displays a warnings banner highlighting this state.
+
+---
+
+[Prev](./page-20-multi-task-ai-model.md) | [Next](./page-22-message-definitions.md)

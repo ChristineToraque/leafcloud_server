@@ -86,3 +86,7 @@ curl -X POST "http://localhost:8000/auth/login" \
     *   `app/schemas.py`: Request (`LoginRequest`) and Response (`LoginResponse`) schemas.
     *   `app/database.py`: DB engine and session setup.
 *   **Requirements**: See `requirements.txt` for the list of dependencies.
+
+---
+
+[Next](./page-2-database-setup.md)

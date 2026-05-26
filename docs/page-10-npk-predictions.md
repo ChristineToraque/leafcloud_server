@@ -31,3 +31,7 @@ Check the latest predictions and scales:
 ```bash
 ./scripts/run-query.sh "SELECT predicted_class, macro_scale, micro_scale, is_anomaly, confidence_score FROM npk_predictions ORDER BY prediction_date DESC LIMIT 5;"
 ```
+
+---
+
+[Prev](./page-9-image-crops.md) | [Next](./page-11-image-crop-progress.md)

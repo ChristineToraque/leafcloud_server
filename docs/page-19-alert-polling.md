@@ -147,3 +147,7 @@ Polling at a 5-minute interval is sufficient for nutrient alerts since readings 
 | Schema | `app/schemas/alert.py` | `AlertStatusResponse` data shape |
 | Service | `app/services/alert_service.py` | Scale check, level logic, top-up calculation |
 | Endpoint | `app/api/v1/endpoints/iot.py` | Tank lookup, delegates to service |
+
+---
+
+[Prev](./page-18-history-api.md) | [Next](./page-20-multi-task-ai-model.md)

@@ -124,3 +124,7 @@ Regression Output: Macro 1.85, Micro 1.90
 Because the classification says "Water" but the regression says the tank is almost completely full of nutrients, your backend logic can flag this as an anomaly or a low-confidence reading and ignore it, rather than blindly triggering a false alert to the farmer.
 
 In summary, the Classification head teaches the model context (what it is looking at), which allows the Regression head to be highly accurate with its numbers (how much is there).
+
+---
+
+[Prev](./page-19-alert-polling.md) | [Next](./page-21-full-stack-ai-integration.md)

@@ -93,3 +93,7 @@ const refreshDashboard = async (tankId) => {
   updateUI(data);
 };
 ```
+
+---
+
+[Prev](./page-15-iot-pi-integration.md) | [Next](./page-17-static-image-serving.md)

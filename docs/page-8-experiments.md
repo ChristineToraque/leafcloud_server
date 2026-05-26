@@ -35,3 +35,7 @@ Check all experiments:
 ```bash
 ./scripts/run-query.sh "SELECT experiment_id, bucket_label, is_current FROM experiments;"
 ```
+
+---
+
+[Prev](./page-7-raw-daily-readings.md) | [Next](./page-9-image-crops.md)

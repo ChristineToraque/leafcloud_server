@@ -26,3 +26,7 @@ The `cleaned_daily_readings` table was originally used to store a processed vers
 
 ## 4. Note
 New IoT uploads no longer write to this table. It is retained for historical training data compatibility with `nutrient_classifier.py` scripts that reference older datasets.
+
+---
+
+[Prev](./page-6-daily-readings.md) | [Next](./page-8-experiments.md)

@@ -88,3 +88,7 @@ python3 raspberry_pi/orchestrator.py
     -   **Dynamic Active Tank Fallback**: If no local settings file exists, it queries the server's `/api/v1/tank-configs/` endpoint to fetch the currently active tank config (`is_active: True`) and uses its ID dynamically.
     -   Clears only the uploaded keys on success, allowing the cycle to repeat securely.
 6.  **Graceful Termination**: Captures `SIGINT` (Ctrl+C) and `SIGTERM` to safely terminate all child processes.
+
+---
+
+[Prev](./page-14-mobile-api-integration.md) | [Next](./page-16-dashboard-api.md)

@@ -80,3 +80,6 @@ python3 scripts/seed_predictions.py
 *   **[backup-db.sh](../scripts/backup-db.sh)**: Backs up the database into the `exports/` folder.
 *   **[test-alert-trigger.py](../scripts/test-alert-trigger.py)**: Manually sets mock scale prediction inputs and prints the alert endpoint response for testing.
 
+---
+
+[Prev](./page-4-zeroconf-discovery.md) | [Next](./page-6-daily-readings.md)

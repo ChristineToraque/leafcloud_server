@@ -1,3 +1,5 @@
+[Prev](./page-12-image-processing-logic.md) | [Next](./page-14-mobile-api-integration.md)
+
 # Database Model: **Tank Configuration**
 
 This document explains the schema and purpose of the `tank_configs` table, which stores dynamic application settings.
@@ -36,3 +38,7 @@ Check currently active configurations:
 ```bash
 ./scripts/run-query.sh "SELECT tank_name, water_volume_liters, is_active FROM tank_configs WHERE is_active = true;"
 ```
+
+---
+
+[Prev](./page-12-image-processing-logic.md) | [Next](./page-14-mobile-api-integration.md)

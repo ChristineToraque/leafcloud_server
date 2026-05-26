@@ -28,3 +28,7 @@ List the most recent image crops:
 ```bash
 ./scripts/run-query.sh "SELECT crop_path, crop_type, timestamp FROM image_crops ORDER BY timestamp DESC LIMIT 5;"
 ```
+
+---
+
+[Prev](./page-8-experiments.md) | [Next](./page-10-npk-predictions.md)

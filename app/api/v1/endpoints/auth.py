@@ -30,7 +30,8 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         "user": {
             "id": user.id,
             "name": user.name,
-            "email": user.email
+            "email": user.email,
+            "is_admin": user.is_admin
         }
     }
 

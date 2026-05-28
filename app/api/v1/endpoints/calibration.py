@@ -5,7 +5,7 @@ from typing import List
 from app.core.database import get_db
 from app.models.sensor_calibration import SensorCalibration as SensorCalibrationModel
 from app.schemas.calibration import SensorCalibration, SensorCalibrationUpdate
-from app.core.security import get_current_user
+from app.core.security import get_current_user, get_current_admin_user
 from app.models.user import User
 
 router = APIRouter()
@@ -28,7 +28,7 @@ def update_calibration_state(
     calibration_id: int, 
     update: SensorCalibrationUpdate, 
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin_user)
 ):
     """Update the is_calibrating state of a sensor."""
     calibration = db.query(SensorCalibrationModel).filter(SensorCalibrationModel.id == calibration_id).first()

@@ -5,6 +5,7 @@ class UserBase(BaseModel):
     id: int
     name: str
     email: EmailStr
+    is_admin: bool = False
 
     class Config:
         from_attributes = True
@@ -18,6 +19,7 @@ class UserResponse(BaseModel):
     id: int
     name: str
     email: EmailStr
+    is_admin: bool = False
 
     class Config:
         from_attributes = True

@@ -8,5 +8,19 @@ class LoginRequest(BaseModel):
 class LoginResponse(BaseModel):
     status: str
     token: str
+    refresh_token: str
     message: str
     user: UserBase
+
+class TokenRefreshRequest(BaseModel):
+    refresh_token: str
+
+class TokenRefreshResponse(BaseModel):
+    status: str
+    token: str
+    refresh_token: str
+    message: str
+
+class LogoutRequest(BaseModel):
+    refresh_token: str
+

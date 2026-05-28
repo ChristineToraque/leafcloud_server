@@ -1,4 +1,4 @@
-[Prev](./page-32-auth-gaps.md)
+[Prev](./page-32-auth-gaps.md) | [Next](./page-34-token-lifecycle.md)
 
 # Authorization: **Role-Based Access Control (RBAC)**
 

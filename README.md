@@ -93,12 +93,15 @@ For detailed guides, please refer to our documentation pages:
 32. **[Database Schema](docs/page-31-database-schema.md)** - Details on the tables, columns, and relationships in the PostgreSQL database.
 33. **[Authentication Gaps](docs/page-32-auth-gaps.md)** - Analysis of missing authentication and authorization features in the current V2 server.
 34. **[Role-Based Access Control (RBAC)](docs/page-33-rbac-implementation.md)** - Details on the implemented role-based authorization system.
+35. **[Token Lifecycle Management](docs/page-34-token-lifecycle.md)** - Details on the access/refresh token dual lifecycle and logout blacklist.
 
 ---
 
 ## 🧪 Verification Tools
 
 - **Verify Discovery**: `python scripts/verify-zeroconf.py`
+- **Verify RBAC**: `python scripts/verify_rbac.py`
+- **Verify Token Lifecycle**: `python scripts/verify_token_lifecycle.py`
 - **Process Images**: `python scripts/image_processor.py`
 - **Seed Predictions**: `python scripts/seed_predictions.py`
 - **Run SQL Queries**: `./scripts/run-query.sh "SELECT * FROM users;"`

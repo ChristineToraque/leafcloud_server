@@ -17,11 +17,13 @@ from app.schemas.alert import AlertStatusResponse
 from app.services.ai_service import process_iot_data_background
 from app.services.history_service import get_tank_history
 from app.services.alert_service import get_tank_alert_status
+from app.core.security import get_current_user
+from app.models.user import User
 
 router = APIRouter()
 
 @router.get("/dashboard/{tank_id}", response_model=DashboardResponse)
-def get_tank_dashboard(tank_id: int, request: Request, db: Session = Depends(get_db)):
+def get_tank_dashboard(tank_id: int, request: Request, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """
     Returns the real-time monitoring dashboard data for a specific tank.
     Performs the dynamic math to convert AI scales into physical grams and alerts.
@@ -209,7 +211,7 @@ async def upload_iot_data(
 
 
 @router.get("/alert/{tank_id}", response_model=AlertStatusResponse)
-def get_tank_alert(tank_id: int, db: Session = Depends(get_db)):
+def get_tank_alert(tank_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     tank = db.query(TankConfig).filter(TankConfig.id == tank_id).first()
     if not tank:
         raise HTTPException(status_code=404, detail=f"Tank with ID {tank_id} not found")
@@ -224,6 +226,7 @@ def get_tank_history_endpoint(
     db: Session = Depends(get_db),
     days: int = Query(default=7, ge=1, le=90, description="Number of past days to fetch"),
     limit: int = Query(default=200, ge=1, le=200, description="Maximum number of readings to return"),
+    current_user: User = Depends(get_current_user),
 ):
     tank = db.query(TankConfig).filter(TankConfig.id == tank_id).first()
     if not tank:

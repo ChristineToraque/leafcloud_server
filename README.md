@@ -92,6 +92,7 @@ For detailed guides, please refer to our documentation pages:
 31. **[Model Evaluation (V3 vs V4)](docs/page-30-evaluation.md)** - Comparative analysis of V3 and V4 machine learning model performance.
 32. **[Database Schema](docs/page-31-database-schema.md)** - Details on the tables, columns, and relationships in the PostgreSQL database.
 33. **[Authentication Gaps](docs/page-32-auth-gaps.md)** - Analysis of missing authentication and authorization features in the current V2 server.
+34. **[Role-Based Access Control (RBAC)](docs/page-33-rbac-implementation.md)** - Details on the implemented role-based authorization system.
 
 ---
 

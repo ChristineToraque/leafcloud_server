@@ -1,4 +1,4 @@
-[Prev](./page-31-database-schema.md)
+[Prev](./page-31-database-schema.md) | [Next](./page-33-rbac-implementation.md)
 
 # Security Analysis: **Authentication & Authorization Gaps**
 

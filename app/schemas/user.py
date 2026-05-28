@@ -6,6 +6,7 @@ class UserBase(BaseModel):
     name: str
     email: EmailStr
     is_admin: bool = False
+    is_verified: bool = False
 
     class Config:
         from_attributes = True
@@ -20,6 +21,13 @@ class UserResponse(BaseModel):
     name: str
     email: EmailStr
     is_admin: bool = False
+    is_verified: bool = False
 
     class Config:
         from_attributes = True
+
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    current_password: Optional[str] = None
+    new_password: Optional[str] = None

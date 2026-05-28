@@ -1,11 +1,11 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core import security
 from app.models.user import User
-from app.schemas.auth import LoginRequest, LoginResponse, TokenRefreshRequest, TokenRefreshResponse, LogoutRequest
-from app.schemas.user import UserCreate, UserResponse
+from app.schemas.auth import LoginRequest, LoginResponse, TokenRefreshRequest, TokenRefreshResponse, LogoutRequest, ForgotPasswordRequest, ResetPasswordRequest
+from app.schemas.user import UserCreate, UserResponse, UserUpdate
 
 router = APIRouter()
 
@@ -17,6 +17,13 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    if not user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Account not verified. Please verify your email first.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -34,13 +41,14 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
             "id": user.id,
             "name": user.name,
             "email": user.email,
-            "is_admin": user.is_admin
+            "is_admin": user.is_admin,
+            "is_verified": user.is_verified
         }
     }
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def register(request: UserCreate, db: Session = Depends(get_db)):
-    """Registers a new user."""
+    """Registers a new user and generates a simulated activation link."""
     existing_user = db.query(User).filter(User.email == request.email).first()
     if existing_user:
         raise HTTPException(
@@ -53,13 +61,155 @@ def register(request: UserCreate, db: Session = Depends(get_db)):
     new_user = User(
         name=request.name,
         email=request.email,
-        hashed_password=hashed_password
+        hashed_password=hashed_password,
+        is_verified=False
     )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
     
+    # Generate verification token (signed JWT valid for 24h)
+    verify_token = security.jwt.encode(
+        {"sub": new_user.email, "type": "verification", "exp": datetime.now(timezone.utc) + timedelta(hours=24)},
+        security.settings.SECRET_KEY,
+        algorithm=security.settings.ALGORITHM
+    )
+    
+    # Log simulated verification email link
+    print(f"\n[SIMULATED EMAIL] Click here to verify your account: http://localhost:8000/api/v1/auth/verify?token={verify_token}\n")
+    
     return new_user
+
+@router.get("/verify")
+def verify_account(token: str, db: Session = Depends(get_db)):
+    """Verifies a newly registered user account via a token link."""
+    try:
+        payload = security.jwt.decode(token, security.settings.SECRET_KEY, algorithms=[security.settings.ALGORITHM])
+        email: str = payload.get("sub")
+        token_type: str = payload.get("type")
+        if email is None or token_type != "verification":
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid verification token")
+    except security.JWTError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Expired or invalid verification token")
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    if user.is_verified:
+        return {"status": "success", "message": "Account already verified"}
+
+    user.is_verified = True
+    db.commit()
+    return {"status": "success", "message": "Account successfully verified!"}
+
+@router.patch("/me", response_model=UserResponse)
+def update_profile(
+    update_data: UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(security.get_current_user)
+):
+    """Updates profile properties or password for the current authenticated user."""
+    needs_refresh_revoke = False
+
+    if update_data.name is not None:
+        current_user.name = update_data.name
+
+    if update_data.email is not None and update_data.email != current_user.email:
+        # Check if email is already in use
+        existing = db.query(User).filter(User.email == update_data.email).first()
+        if existing:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email address already registered")
+        
+        current_user.email = update_data.email
+        current_user.is_verified = False  # Require re-verification
+        needs_refresh_revoke = True
+
+        # Generate new verification token
+        verify_token = security.jwt.encode(
+            {"sub": current_user.email, "type": "verification", "exp": datetime.now(timezone.utc) + timedelta(hours=24)},
+            security.settings.SECRET_KEY,
+            algorithm=security.settings.ALGORITHM
+        )
+        print(f"\n[SIMULATED EMAIL] Email changed. Click here to re-verify: http://localhost:8000/api/v1/auth/verify?token={verify_token}\n")
+
+    if update_data.new_password is not None:
+        # Password change requires current password validation
+        if not update_data.current_password or not security.verify_password(update_data.current_password, current_user.hashed_password):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect current password")
+        
+        current_user.hashed_password = security.get_password_hash(update_data.new_password)
+        needs_refresh_revoke = True
+
+    if needs_refresh_revoke:
+        # Revoke all active refresh sessions to force re-authentication
+        db.query(security.RefreshToken).filter(
+            security.RefreshToken.user_id == current_user.id
+        ).update({security.RefreshToken.is_revoked: True}, synchronize_session=False)
+
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
+@router.post("/forgot-password")
+def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    """Forgot password endpoint. Generates a reset token and prints simulated link."""
+    user = db.query(User).filter(User.email == request.email).first()
+    if user:
+        # Generate secure random token
+        import secrets
+        reset_token = secrets.token_hex(32)
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+
+        from app.models.password_reset import PasswordResetToken
+        db_reset = PasswordResetToken(
+            email=user.email,
+            token=reset_token,
+            expires_at=expires_at
+        )
+        db.add(db_reset)
+        db.commit()
+
+        # Log simulated password recovery link
+        print(f"\n[SIMULATED EMAIL] Reset your password here: http://localhost:8000/api/v1/auth/reset-password?token={reset_token}\n")
+
+    # Always return success to prevent email enumeration
+    return {"status": "success", "message": "If this email is registered, a password reset link has been sent."}
+
+@router.post("/reset-password")
+def reset_password(request: ResetPasswordRequest, db: Session = Depends(get_db)):
+    """Reset password endpoint. Consumes reset token and updates password."""
+    from app.models.password_reset import PasswordResetToken
+    db_reset = db.query(PasswordResetToken).filter(
+        PasswordResetToken.token == request.token,
+        PasswordResetToken.is_used == False
+    ).first()
+
+    if not db_reset:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid reset token")
+    
+    expires_at = db_reset.expires_at
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Expired reset token")
+
+    user = db.query(User).filter(User.email == db_reset.email).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User associated with token not found")
+
+    # Update password
+    user.hashed_password = security.get_password_hash(request.new_password)
+    db_reset.is_used = True
+
+    # Revoke all active refresh sessions to force re-authentication
+    db.query(security.RefreshToken).filter(
+        security.RefreshToken.user_id == user.id
+    ).update({security.RefreshToken.is_revoked: True}, synchronize_session=False)
+
+    db.commit()
+    return {"status": "success", "message": "Password has been successfully reset."}
 
 @router.post("/refresh", response_model=TokenRefreshResponse)
 def refresh(request: TokenRefreshRequest, db: Session = Depends(get_db)):

@@ -34,15 +34,23 @@ def seed_admin_user():
                 email=admin_email,
                 name=settings.ADMIN_NAME,
                 hashed_password=hashed_password,
-                is_admin=True
+                is_admin=True,
+                is_verified=True
             )
             db.add(new_admin)
             db.commit()
             print("Admin user seeded successfully.")
         else:
+            updated = False
             if not admin_user.is_admin:
                 print(f"Updating existing seeded admin {admin_email} to is_admin=True")
                 admin_user.is_admin = True
+                updated = True
+            if not admin_user.is_verified:
+                print(f"Updating existing seeded admin {admin_email} to is_verified=True")
+                admin_user.is_verified = True
+                updated = True
+            if updated:
                 db.commit()
     except Exception as e:
         print(f"Error seeding admin user: {e}")

@@ -40,3 +40,4 @@ leafcloud3_dump_20260524_231537.dump
 .scripts-test
 leafcloud_multimodal_v4_20260526_2033.keras
 leafcloud_multimodal_v5_20260528_0904.keras
+*.keras

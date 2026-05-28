@@ -1,4 +1,4 @@
-[Prev](./page-33-rbac-implementation.md)
+[Prev](./page-33-rbac-implementation.md) | [Next](./page-35-account-lifecycle.md)
 
 # Security: **Token Lifecycle Management (Access + Refresh Tokens)**
 

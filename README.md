@@ -94,6 +94,7 @@ For detailed guides, please refer to our documentation pages:
 33. **[Authentication Gaps](docs/page-32-auth-gaps.md)** - Analysis of missing authentication and authorization features in the current V2 server.
 34. **[Role-Based Access Control (RBAC)](docs/page-33-rbac-implementation.md)** - Details on the implemented role-based authorization system.
 35. **[Token Lifecycle Management](docs/page-34-token-lifecycle.md)** - Details on the access/refresh token dual lifecycle and logout blacklist.
+36. **[Account Lifecycle Management](docs/page-35-account-lifecycle.md)** - Details on the account verification, password updates, and forgot/reset password flows.
 
 ---
 
@@ -102,6 +103,7 @@ For detailed guides, please refer to our documentation pages:
 - **Verify Discovery**: `python scripts/verify-zeroconf.py`
 - **Verify RBAC**: `python scripts/verify_rbac.py`
 - **Verify Token Lifecycle**: `python scripts/verify_token_lifecycle.py`
+- **Verify Account Lifecycle**: `python scripts/verify_account_lifecycle.py`
 - **Process Images**: `python scripts/image_processor.py`
 - **Seed Predictions**: `python scripts/seed_predictions.py`
 - **Run SQL Queries**: `./scripts/run-query.sh "SELECT * FROM users;"`

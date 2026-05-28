@@ -75,18 +75,60 @@ To remove a tank setup:
 
 ---
 
-## 3. Mobile Implementation Example (JavaScript/Fetch)
+## 3. Authentication & JWT Tokens
+
+Due to route protection on all user-facing endpoints, the mobile app must authenticate requests:
+
+1. **Get Token (Login):**
+   Send a `POST` request to `/api/v1/auth/login` with email and password.
+   **Response JSON:**
+   ```json
+   {
+     "status": "success",
+     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+     "message": "Login successful"
+   }
+   ```
+2. **Attach Token to Requests:**
+   Include the token in the `Authorization` header as a Bearer token:
+   `Authorization: Bearer <your-token-here>`
+
+---
+
+## 4. Mobile Implementation Example (JavaScript/Fetch)
 
 ```javascript
-const saveSettings = async (formData) => {
+// Example login flow to retrieve token
+const loginUser = async (email, password) => {
+  const response = await fetch('http://192.168.1.20:8000/api/v1/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  if (response.ok) {
+    const data = await response.json();
+    return data.token; // Save this token securely (e.g. AsyncStorage / SecureStore)
+  }
+  throw new Error('Authentication failed');
+};
+
+// Example authenticated API call
+const saveSettings = async (formData, token) => {
   try {
     const response = await fetch('http://192.168.1.20:8000/api/v1/tank-configs/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` // <-- REQUIRED
       },
       body: JSON.stringify(formData),
     });
+
+    if (response.status === 401) {
+      console.log('Session expired, redirecting to login...');
+      // Handle logout/redirect
+      return;
+    }
 
     if (response.ok) {
       const data = await response.json();

@@ -1,4 +1,4 @@
-[Prev](./page-28-upload-interval-configuration.md)
+[Prev](./page-28-upload-interval-configuration.md) | [Next](./page-30-evaluation.md)
 
 Here is the line-by-line explanation of the code inside the `@router.get("/dashboard/{tank_id}", response_model=DashboardResponse)` endpoint.
 

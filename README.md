@@ -89,6 +89,9 @@ For detailed guides, please refer to our documentation pages:
 28. **[Camera Streaming & Terminal Visualization](docs/page-27-camera-streaming.md)** - How to stream video and view it in a terminal or GUI.
 29. **[Upload Interval Configuration](docs/page-28-upload-interval-configuration.md)** - Dynamic upload cooldown configuration and API schemas.
 30. **[Dashboard Code Explanation](docs/page-29-dashboard-code-explanation.md)** - Line-by-line code explanation for the monitoring dashboard endpoint.
+31. **[Model Evaluation (V3 vs V4)](docs/page-30-evaluation.md)** - Comparative analysis of V3 and V4 machine learning model performance.
+32. **[Database Schema](docs/page-31-database-schema.md)** - Details on the tables, columns, and relationships in the PostgreSQL database.
+33. **[Authentication Gaps](docs/page-32-auth-gaps.md)** - Analysis of missing authentication and authorization features in the current V2 server.
 
 ---
 

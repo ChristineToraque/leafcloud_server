@@ -1,5 +1,6 @@
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core import security
@@ -175,6 +176,336 @@ def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(get_db
 
     # Always return success to prevent email enumeration
     return {"status": "success", "message": "If this email is registered, a password reset link has been sent."}
+
+RESET_FORM_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Password | LeafCloud</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+        body {
+            background: radial-gradient(circle at 10% 20%, rgb(18, 20, 36) 0%, rgb(9, 10, 15) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            z-index: 1;
+            animation: float 10s ease-in-out infinite alternate;
+        }
+        .blob-1 {
+            width: 300px;
+            height: 300px;
+            background: #3b82f6;
+            top: 20%;
+            left: 10%;
+        }
+        .blob-2 {
+            width: 250px;
+            height: 250px;
+            background: #10b981;
+            bottom: 20%;
+            right: 15%;
+            animation-delay: -5s;
+        }
+        @keyframes float {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(30px) scale(1.1); }
+        }
+        .container {
+            z-index: 10;
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            color: #fff;
+            text-align: center;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+        .title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #f3f4f6;
+            margin-bottom: 24px;
+        }
+        .form-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 400;
+            color: #9ca3af;
+            margin-bottom: 8px;
+            padding-left: 4px;
+        }
+        input {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        input:focus {
+            border-color: #10b981;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .message {
+            margin-top: 15px;
+            font-size: 14px;
+            border-radius: 10px;
+            padding: 10px;
+            display: none;
+        }
+        .error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+        .success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+    </style>
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="container">
+        <div class="card">
+            <div class="logo">LEAFCLOUD</div>
+            <div class="title">Reset Password</div>
+            
+            <form id="reset-form">
+                <input type="hidden" id="token" value="{{TOKEN}}">
+                <div class="form-group">
+                    <label for="password">New Password</label>
+                    <input type="password" id="password" placeholder="Enter new password" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password</label>
+                    <input type="password" id="confirm-password" placeholder="Confirm new password" required minlength="6">
+                </div>
+                <button type="submit" id="submit-btn">Update Password</button>
+            </form>
+            <div id="msg" class="message"></div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('reset-form');
+        const msg = document.getElementById('msg');
+        const submitBtn = document.getElementById('submit-btn');
+
+        function showError(text) {
+            msg.textContent = text;
+            msg.className = 'message error';
+            msg.style.display = 'block';
+        }
+
+        function showSuccess(text) {
+            msg.textContent = text;
+            msg.className = 'message success';
+            msg.style.display = 'block';
+            form.style.display = 'none';
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const token = document.getElementById('token').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (password !== confirmPassword) {
+                showError("Passwords do not match.");
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Updating...';
+
+            try {
+                const response = await fetch('/api/v1/auth/reset-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ token, new_password: password })
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    showSuccess("Password successfully updated! You may now close this page.");
+                } else {
+                    showError(data.detail || "Failed to reset password.");
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Update Password';
+                }
+            } catch (err) {
+                showError("Network error. Please try again.");
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Update Password';
+            }
+        });
+    </script>
+</body>
+</html>"""
+
+ERROR_PAGE_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invalid Token | LeafCloud</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+        body {
+            background: radial-gradient(circle at 10% 20%, rgb(18, 20, 36) 0%, rgb(9, 10, 15) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .container {
+            z-index: 10;
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            color: #fff;
+            text-align: center;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ef4444 0%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        .title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #f3f4f6;
+            margin-bottom: 12px;
+        }
+        .desc {
+            color: #9ca3af;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="logo">ACCESS EXPIRED</div>
+            <div class="title">Link Invalid or Expired</div>
+            <div class="desc">{{ERROR}}</div>
+        </div>
+    </div>
+</body>
+</html>"""
+
+@router.get("/reset-password", response_class=HTMLResponse)
+def get_reset_password_page(token: str, db: Session = Depends(get_db)):
+    """Serves the password reset HTML form page."""
+    from app.models.password_reset import PasswordResetToken
+    db_reset = db.query(PasswordResetToken).filter(
+        PasswordResetToken.token == token,
+        PasswordResetToken.is_used == False
+    ).first()
+
+    if not db_reset:
+        return HTMLResponse(
+            status_code=400,
+            content=ERROR_PAGE_HTML.replace("{{ERROR}}", "This reset link is invalid or has already been used.")
+        )
+    
+    expires_at = db_reset.expires_at
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+    if expires_at < datetime.now(timezone.utc):
+        return HTMLResponse(
+            status_code=400,
+            content=ERROR_PAGE_HTML.replace("{{ERROR}}", "This reset link has expired. Please request a new password reset.")
+        )
+
+    return HTMLResponse(content=RESET_FORM_HTML.replace("{{TOKEN}}", token))
 
 @router.post("/reset-password")
 def reset_password(request: ResetPasswordRequest, db: Session = Depends(get_db)):

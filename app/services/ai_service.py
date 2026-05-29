@@ -87,10 +87,10 @@ def process_iot_data_background(cleaned_reading_id: int):
             
             # Prepare inputs
             # The model expects [images, sensors]
-            # Normalize sensors first (matching nutrient_classifier.py logic)
-            # SENSOR_NORM = {'ph': (3.0, 10.0), 'ec': (0.0, 3.0), 'water_temp': (24.0, 29.0)}
+            # Normalize sensors — must match nutrient_classifier_v5.py SENSOR_NORM exactly.
+            # ec range changed from (0.0, 3.0) to (0.0, 1.6) in V5: actual data spans 0.04–1.51.
             ph_norm = (np.clip(reading.ph, 3.0, 10.0) - 3.0) / (10.0 - 3.0)
-            ec_norm = (np.clip(reading.ec, 0.0, 3.0) - 0.0) / (3.0 - 0.0)
+            ec_norm = (np.clip(reading.ec, 0.0, 1.6) - 0.0) / (1.6 - 0.0)
             temp_norm = (np.clip(reading.water_temp, 24.0, 29.0) - 24.0) / (29.0 - 24.0)
             
             sensor_input = np.array([[ph_norm, ec_norm, temp_norm]], dtype=np.float32)
@@ -120,7 +120,7 @@ def process_iot_data_background(cleaned_reading_id: int):
             predicted_class = LABEL_LIST[class_idx]
             confidence = float(avg_clf[class_idx])
             
-            # Regression Output — clamp to [0.0, 1.0] since model has no bounded output layer
+            # Regression Output — sigmoid output is already [0, 1]; clip guards against float edge cases
             macro_scale = float(np.clip(avg_reg[0], 0.0, 1.0))
             micro_scale = float(np.clip(avg_reg[1], 0.0, 1.0))
             

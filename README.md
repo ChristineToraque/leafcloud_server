@@ -95,6 +95,7 @@ For detailed guides, please refer to our documentation pages:
 34. **[Role-Based Access Control (RBAC)](docs/page-33-rbac-implementation.md)** - Details on the implemented role-based authorization system.
 35. **[Token Lifecycle Management](docs/page-34-token-lifecycle.md)** - Details on the access/refresh token dual lifecycle and logout blacklist.
 36. **[Account Lifecycle Management](docs/page-35-account-lifecycle.md)** - Details on the account verification, password updates, and forgot/reset password flows.
+37. **[Model V6 Evaluation & V7 Plan](docs/model-v6-evaluation-analysis.md)** - Detailed analysis of V6 performance under continuous targets and the V7 architecture plan.
 
 ---
 

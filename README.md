@@ -97,6 +97,7 @@ For detailed guides, please refer to our documentation pages:
 36. **[Account Lifecycle Management](docs/page-35-account-lifecycle.md)** - Details on the account verification, password updates, and forgot/reset password flows.
 37. **[Model V6 Evaluation & V7 Plan](docs/model-v6-evaluation-analysis.md)** - Detailed analysis of V6 performance under continuous targets and the V7 architecture plan.
 38. **[Model V7 Evaluation & V8 Plan](docs/model-v7-evaluation-analysis.md)** - Detailed analysis of V7 performance under time targets, backpropagation leaks, and the V8 architecture plan.
+39. **[Model V8 Evaluation & V9 Plan](docs/model-v8-evaluation-analysis.md)** - Detailed analysis of V8 performance under time targets, custom serialization, and the V9 architecture plan.
 
 ---
 

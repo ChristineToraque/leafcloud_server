@@ -18,6 +18,9 @@ baseline_ram = get_ram_usage_mb()
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+import builtins
+builtins.tf = tf
+tf.keras.layers.Lambda.compute_output_shape = lambda self, input_shape: input_shape
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -362,7 +365,7 @@ def main():
         sys.exit(1)
 
     print(f"💾 Loading model: {model_path}...")
-    model = tf.keras.models.load_model(model_path)
+    model = tf.keras.models.load_model(model_path, safe_mode=False)
     post_load_ram = get_ram_usage_mb()
 
     val_df = get_validation_data()

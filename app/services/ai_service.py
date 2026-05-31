@@ -1,5 +1,8 @@
 import logging
 import tensorflow as tf
+import builtins
+builtins.tf = tf
+tf.keras.layers.Lambda.compute_output_shape = lambda self, input_shape: input_shape
 import numpy as np
 import cv2
 import os
@@ -22,7 +25,7 @@ def get_model():
     if _MODEL is None:
         if os.path.exists(settings.AI_MODEL_PATH):
             logger.info(f"Loading AI Model from {settings.AI_MODEL_PATH}...")
-            _MODEL = tf.keras.models.load_model(settings.AI_MODEL_PATH)
+            _MODEL = tf.keras.models.load_model(settings.AI_MODEL_PATH, safe_mode=False)
         else:
             logger.error(f"AI Model file not found at {settings.AI_MODEL_PATH}")
     return _MODEL
@@ -142,10 +145,10 @@ def process_iot_data_background(cleaned_reading_id: int):
                 is_anomaly=is_anomaly,
                 macro_scale=macro_scale,
                 micro_scale=micro_scale,
-                # Legacy compatibility
-                predicted_n=float(avg_clf[1]), 
-                predicted_p=float(avg_clf[2]), 
-                predicted_k=float(avg_clf[3]), 
+                # Legacy columns — no longer used by the new model, set to 0 to avoid breaking the DB schema
+                predicted_n=0.0,
+                predicted_p=0.0,
+                predicted_k=0.0,
                 confidence_score=confidence
             )
             db.add(prediction_record)

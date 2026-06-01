@@ -31,6 +31,8 @@ def discover_server(timeout: int = 10) -> Optional[str]:
     """
     zeroconf = Zeroconf()
     listener = LeafCloudListener()
+
+    # assigned to a variable (not discarded) to prevent garbage collection from killing its background thread
     browser = ServiceBrowser(zeroconf, "_leafcloud._tcp.local.", listener)
     
     start_time = time.time()

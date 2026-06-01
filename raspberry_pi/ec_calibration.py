@@ -22,6 +22,7 @@ def get_server_url() -> str:
 def get_calibration_record(server_url: str) -> dict:
     """Finds the specific EC calibration record by name."""
     try:
+        print(f"📡 Fetching calibration records from server...")
         response = requests.get(f"{server_url}/api/v1/calibration/", timeout=5)
         if response.status_code == 200:
             states = response.json()

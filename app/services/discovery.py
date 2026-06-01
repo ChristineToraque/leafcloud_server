@@ -64,7 +64,7 @@ class DiscoveryService:
         if self.aiozc:
             if self.service_info:
                 await self.aiozc.async_unregister_service(self.service_info)
-            await self.aiozc.close()
+            await self.aiozc.async_close()
             self.aiozc = None
             self.service_info = None
             logger.info("Zeroconf service unregistered and closed.")

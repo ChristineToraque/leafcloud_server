@@ -4,7 +4,7 @@ from typing import List
 from app.core.database import get_db
 from app.models.tank_config import TankConfig
 from app.schemas.tank_config import TankConfigCreate, TankConfigUpdate, TankConfigResponse
-from app.core.security import get_current_user, get_current_admin_user
+from app.core.security import get_current_admin_user
 from app.models.user import User
 
 router = APIRouter()
@@ -19,12 +19,12 @@ def create_tank_config(config: TankConfigCreate, db: Session = Depends(get_db), 
     return new_config
 
 @router.get("/", response_model=List[TankConfigResponse])
-def list_tank_configs(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def list_tank_configs(db: Session = Depends(get_db)):
     """Lists all tank configurations."""
     return db.query(TankConfig).all()
 
 @router.get("/{config_id}", response_model=TankConfigResponse)
-def get_tank_config(config_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_tank_config(config_id: int, db: Session = Depends(get_db)):
     """Retrieves a specific tank configuration by ID."""
     config = db.query(TankConfig).filter(TankConfig.id == config_id).first()
     if not config:

@@ -112,7 +112,7 @@ if __name__ == "__main__":
 
     try:
         i2c = busio.I2C(board.SCL, board.SDA)
-        ads = ADS.ADS1115(i2c)
+        ads = ADS.ADS1115(i2c, address=0x49)
         ph_channel = AnalogIn(ads, 0)
         print("✅ Hardware Ready.")
     except Exception as e:

@@ -42,7 +42,7 @@ class ECReader:
             from adafruit_ads1x15.analog_in import AnalogIn
 
             i2c = busio.I2C(board.SCL, board.SDA)
-            self.ads = ADS.ADS1115(i2c)
+            self.ads = ADS.ADS1115(i2c, address=0x48)
             self.ec_chan = AnalogIn(self.ads, self.channel_index)
             print("🔌 ADS1115 and EC channel initialized successfully.")
             return True

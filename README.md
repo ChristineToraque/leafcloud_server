@@ -99,6 +99,7 @@ For detailed guides, please refer to our documentation pages:
 38. **[Model V7 Evaluation & V8 Plan](docs/model-v7-evaluation-analysis.md)** - Detailed analysis of V7 performance under time targets, backpropagation leaks, and the V8 architecture plan.
 39. **[Model V8 Evaluation & V9 Plan](docs/model-v8-evaluation-analysis.md)** - Detailed analysis of V8 performance under time targets, custom serialization, and the V9 architecture plan.
 40. **[Model V9 Evaluation & V10 Plan](docs/model-v9-evaluation-analysis.md)** - Detailed analysis of V9 performance, shared feature contamination, and the V10 architecture plan.
+41. **[Model V10 Evaluation & V11 Plan](docs/model-v10-evaluation-analysis.md)** - Detailed analysis of V10 performance, feature capacity bottleneck, and the V11 architecture plan.
 
 ---
 

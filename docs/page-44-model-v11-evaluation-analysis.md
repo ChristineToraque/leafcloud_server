@@ -1,4 +1,4 @@
-[Prev](./page-43-model-v9-evaluation-analysis.md) | [Index](../README.md)
+[Prev](./page-43-model-v9-evaluation-analysis.md) | [Next](./page-45-capstone-updates.md)
 
 # LeafCloud Nutrient Classifier — V11 Model Evaluation Analysis
 
@@ -19,6 +19,10 @@ The V11 model implements the **Independent Dual-Fusion Architecture** with gradi
 - **Weighted Precision**: **0.8860**
 - **Weighted Recall**: **0.8833**
 - **Weighted $F_1$-Score**: **0.8829**
+
+##### **Visual Classification Metrics Bar Chart**
+![V11 Classification Metrics Graph](file:///Users/fil/Fil/leafcloud/mimeng_leafcloud_server_v2/exports/classification_metrics_graph.png)
+
 
 #### Detailed Classification Report
 | Target Class | Precision | Recall | $F_1$-Score | Support (Samples) |

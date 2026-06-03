@@ -16,6 +16,17 @@ import shutil
 
 logger = logging.getLogger(__name__)
 
+@tf.keras.utils.register_keras_serializable(package="Custom")
+class StopGradient(tf.keras.layers.Layer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def call(self, inputs):
+        return tf.stop_gradient(inputs)
+
+    def compute_output_shape(self, input_shape):
+        return input_shape
+
 # Global variable to cache the loaded model
 _MODEL = None
 
@@ -25,7 +36,11 @@ def get_model():
     if _MODEL is None:
         if os.path.exists(settings.AI_MODEL_PATH):
             logger.info(f"Loading AI Model from {settings.AI_MODEL_PATH}...")
-            _MODEL = tf.keras.models.load_model(settings.AI_MODEL_PATH, safe_mode=False)
+            _MODEL = tf.keras.models.load_model(
+                settings.AI_MODEL_PATH, 
+                safe_mode=False, 
+                custom_objects={'StopGradient': StopGradient}
+            )
         else:
             logger.error(f"AI Model file not found at {settings.AI_MODEL_PATH}")
     return _MODEL

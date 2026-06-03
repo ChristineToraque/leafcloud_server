@@ -1,4 +1,5 @@
 import os
+import sys
 from datetime import datetime
 import numpy as np
 import pandas as pd
@@ -13,6 +14,10 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping
 from sqlalchemy import create_engine
 from tqdm import tqdm
+
+# Add project root to sys.path so 'app' module can be resolved
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from app.core.config import settings
 
 # ==========================================
@@ -22,7 +27,7 @@ DB_URL = settings.DATABASE_URL
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 32
 TIMESTAMP = datetime.now().strftime('%Y%m%d_%H%M')
-MODEL_SAVE_PATH = f'leafcloud_sensor_boost_{TIMESTAMP}.keras'
+MODEL_SAVE_PATH = f'leafcloud_multimodal_v2_{TIMESTAMP}.keras'
 
 SENSOR_NORM = {
     'ph':         (3.0, 10.0),
@@ -33,6 +38,15 @@ SENSOR_NORM = {
 # Mapping for 4-class classification
 LABEL_LIST = ['Water', 'NPK', 'Micro', 'Mix']
 LABEL_TO_IDX = {l: i for i, l in enumerate(LABEL_LIST)}
+
+# Mapping for Regression: [Macro (NPK), Micro]
+# 2.0 represents target concentration (100% dosage)
+CONCENTRATION_MAP = {
+    'Water': [0.0, 0.0],
+    'NPK':   [2.0, 0.0],
+    'Micro': [0.0, 2.0],
+    'Mix':   [2.0, 2.0],
+}
 
 def fetch_raw_data(engine) -> pd.DataFrame:
     """Fetches the linked crops, readings, and experiments from the database."""
@@ -54,6 +68,8 @@ def fetch_raw_data(engine) -> pd.DataFrame:
 
 def filter_missing_images(df: pd.DataFrame) -> pd.DataFrame:
     """Removes records where the image file is not accessible on disk."""
+    if df.empty:
+        return df
     print('🔍 Verifying image files on disk...')
     def is_accessible(path):
         try:
@@ -101,6 +117,11 @@ def get_dataset():
     # Encode labels for classification
     df['label_idx'] = df['bucket_label'].map(LABEL_TO_IDX)
     
+    # Map regression targets
+    targets = df['bucket_label'].map(CONCENTRATION_MAP)
+    df['macro_val'] = [t[0] for t in targets]
+    df['micro_val'] = [t[1] for t in targets]
+    
     df = calculate_sample_weights(df)
 
     return df
@@ -142,11 +163,15 @@ class MultiModalGenerator(tf.keras.utils.Sequence):
         images  = np.array([self._load_image(p) for p in batch['image_path']])
         sensors = batch[['ph', 'ec', 'water_temp']].values.astype(np.float32)
         
-        # Convert index to one-hot labels
-        labels  = tf.keras.utils.to_categorical(batch['label_idx'].values, num_classes=4)
+        # Classification Targets
+        labels_clf = tf.keras.utils.to_categorical(batch['label_idx'].values, num_classes=4)
+        
+        # Regression Targets [Macro, Micro]
+        labels_reg = batch[['macro_val', 'micro_val']].values.astype(np.float32)
+        
         weights = batch['sample_weight'].values.astype(np.float32)
 
-        return (images, sensors), labels, weights
+        return (images, sensors), {'clf_output': labels_clf, 'reg_output': labels_reg}, weights
 
 def build_model_sensor_boosted():
     base_model = MobileNetV2(
@@ -160,14 +185,14 @@ def build_model_sensor_boosted():
     img_input = base_model.input
     x = base_model.output
     x = GlobalAveragePooling2D()(x)
-    x = Dense(64, activation='relu')(x)
+    x = Dense(128, activation='relu')(x)
     x = Dropout(0.4)(x)
 
     # Sensor Branch
     sensor_input = Input(shape=(3,), name='sensor_input')
-    s = Dense(128, activation='relu')(sensor_input)
+    s = Dense(64, activation='relu')(sensor_input)
     s = BatchNormalization()(s)
-    s = Dense(64, activation='relu')(s)
+    s = Dense(32, activation='relu')(s)
     s = Dropout(0.2)(s)
 
     # Fusion
@@ -175,14 +200,28 @@ def build_model_sensor_boosted():
     merged = Dense(128, activation='relu')(merged)
     merged = Dropout(0.3)(merged)
     
-    # Final Layer: 4 Units for 4-class Classification
-    output = Dense(4, activation='softmax')(merged)
+    # Final Layer 1: Classification (4 Units)
+    clf_output = Dense(4, activation='softmax', name='clf_output')(merged)
+    
+    # Final Layer 2: Regression (2 Units: Macro, Micro)
+    reg_output = Dense(2, activation='linear', name='reg_output')(merged)
 
-    model = Model(inputs=[img_input, sensor_input], outputs=output)
+    model = Model(inputs=[img_input, sensor_input], outputs=[clf_output, reg_output])
+    
     model.compile(
         optimizer=Adam(learning_rate=0.0005),
-        loss='categorical_crossentropy',
-        metrics=['accuracy']
+        loss={
+            'clf_output': 'categorical_crossentropy',
+            'reg_output': 'mse'
+        },
+        loss_weights={
+            'clf_output': 1.0,
+            'reg_output': 0.5  # Give slightly less weight to regression initially
+        },
+        metrics={
+            'clf_output': 'accuracy',
+            'reg_output': 'mae'
+        }
     )
 
     return model, base_model
@@ -198,28 +237,32 @@ if __name__ == '__main__':
         train_gen = MultiModalGenerator(df_shuffled.iloc[:split], BATCH_SIZE, IMG_SIZE, augment=True)
         val_gen   = MultiModalGenerator(df_shuffled.iloc[split:], BATCH_SIZE, IMG_SIZE, augment=False)
 
-        print('🧠 Building Sensor-Boosted Classification Model...')
+        print('🧠 Building Multi-Task Multi-Modal Model...')
         model, base_model = build_model_sensor_boosted()
         model.summary()
 
         early_stop = EarlyStopping(
-            monitor='val_accuracy',
+            monitor='val_clf_output_accuracy',
             patience=10,
             restore_best_weights=True,
             mode='max',
             verbose=1
         )
 
-        print('\n🚀 Phase 1 Training...')
+        print('\n🚀 Phase 1 Training (Custom Heads)...')
         model.fit(train_gen, validation_data=val_gen, epochs=50, callbacks=[early_stop])
 
-        print('\n🔓 Phase 2 Fine-tuning...')
+        print('\n🔓 Phase 2 Fine-tuning (Top MobileNet Layers)...')
         base_model.trainable = True
-        # Fine-tune more layers for classification complexity
         for layer in base_model.layers[:-30]:
             layer.trainable = False
         
-        model.compile(optimizer=Adam(learning_rate=1e-5), loss='categorical_crossentropy', metrics=['accuracy'])
+        model.compile(
+            optimizer=Adam(learning_rate=1e-5),
+            loss={'clf_output': 'categorical_crossentropy', 'reg_output': 'mse'},
+            loss_weights={'clf_output': 1.0, 'reg_output': 0.5},
+            metrics={'clf_output': 'accuracy', 'reg_output': 'mae'}
+        )
         model.fit(train_gen, validation_data=val_gen, epochs=30, callbacks=[early_stop])
 
         model.save(MODEL_SAVE_PATH)

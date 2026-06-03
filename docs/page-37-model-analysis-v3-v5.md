@@ -1,3 +1,5 @@
+[Prev](./page-36-dashboard-ppm-analysis.md) | [Next](./page-38-model-classification-vs-estimation.md)
+
 # LeafCloud Nutrient Classifier — Model Analysis (V3 → V5)
 
 **Date:** 2026-05-28 to 2026-05-29  

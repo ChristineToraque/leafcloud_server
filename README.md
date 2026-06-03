@@ -95,11 +95,16 @@ For detailed guides, please refer to our documentation pages:
 34. **[Role-Based Access Control (RBAC)](docs/page-33-rbac-implementation.md)** - Details on the implemented role-based authorization system.
 35. **[Token Lifecycle Management](docs/page-34-token-lifecycle.md)** - Details on the access/refresh token dual lifecycle and logout blacklist.
 36. **[Account Lifecycle Management](docs/page-35-account-lifecycle.md)** - Details on the account verification, password updates, and forgot/reset password flows.
-37. **[Model V6 Evaluation & V7 Plan](docs/model-v6-evaluation-analysis.md)** - Detailed analysis of V6 performance under continuous targets and the V7 architecture plan.
-38. **[Model V7 Evaluation & V8 Plan](docs/model-v7-evaluation-analysis.md)** - Detailed analysis of V7 performance under time targets, backpropagation leaks, and the V8 architecture plan.
-39. **[Model V8 Evaluation & V9 Plan](docs/model-v8-evaluation-analysis.md)** - Detailed analysis of V8 performance under time targets, custom serialization, and the V9 architecture plan.
-40. **[Model V9 Evaluation & V10 Plan](docs/model-v9-evaluation-analysis.md)** - Detailed analysis of V9 performance, shared feature contamination, and the V10 architecture plan.
-41. **[Model V10 Evaluation & V11 Plan](docs/model-v10-evaluation-analysis.md)** - Detailed analysis of V10 performance, feature capacity bottleneck, and the V11 architecture plan.
+37. **[Model V6 Evaluation & V7 Plan](docs/page-40-model-v6-evaluation-analysis.md)** - Detailed analysis of V6 performance under continuous targets and the V7 architecture plan.
+38. **[Model V7 Evaluation & V8 Plan](docs/page-41-model-v7-evaluation-analysis.md)** - Detailed analysis of V7 performance under time targets, backpropagation leaks, and the V8 architecture plan.
+39. **[Model V8 Evaluation & V9 Plan](docs/page-42-model-v8-evaluation-analysis.md)** - Detailed analysis of V8 performance under time targets, custom serialization, and the V9 architecture plan.
+40. **[Model V9 Evaluation & V10 Plan](docs/page-43-model-v9-evaluation-analysis.md)** - Detailed analysis of V9 performance, shared feature contamination, and the V10 architecture plan.
+41. **[Model V10 Evaluation & V11 Plan](docs/page-44-model-v10-evaluation-analysis.md)** - Detailed analysis of V10 performance, feature capacity bottleneck, and the V11 architecture plan.
+42. **[Model V11 Evaluation](docs/page-44-model-v11-evaluation-analysis.md)** - Detailed analysis of V11 Independent Dual-Fusion performance.
+43. **[Capstone Project Document Updates](docs/page-45-capstone-updates.md)** - Guidelines and tables to update the thesis document with V11 model results.
+44. **[Model Evolution History (V1 to V11)](docs/page-47-model-evolution-history.md)** - Comprehensive history of the AI model design iterations, technical bottlenecks, and architectural resolutions.
+
+
 
 ---
 

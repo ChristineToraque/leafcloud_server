@@ -1,3 +1,5 @@
+[Prev](./page-37-model-analysis-v3-v5.md) | [Next](./page-39-model-regression-limitations.md)
+
 # Classification vs. Estimation — What the App Can and Cannot Do
 
 **Date:** 2026-05-29  

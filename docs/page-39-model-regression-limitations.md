@@ -1,3 +1,5 @@
+[Prev](./page-38-model-classification-vs-estimation.md) | [Next](./page-40-model-v6-evaluation-analysis.md)
+
 # Regression Output Limitations and V6 Roadmap
 
 **Date:** 2026-05-29  

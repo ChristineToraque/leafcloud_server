@@ -1,3 +1,5 @@
+[Prev](./page-40-model-v6-evaluation-analysis.md) | [Next](./page-42-model-v8-evaluation-analysis.md)
+
 # LeafCloud Nutrient Classifier — V7 Model Evaluation Analysis & V8 Upgrade Plan
 
 **Date:** 2026-05-30  

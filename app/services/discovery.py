@@ -52,8 +52,9 @@ class DiscoveryService:
             server=f"{service_name.lower()}.local.",
         )
 
+        # Bind to all network interfaces for maximum reliability on multi-homed devices like macOS
         self.aiozc = AsyncZeroconf(ip_version=IPVersion.V4Only)
-        await self.aiozc.async_register_service(self.service_info)
+        await self.aiozc.async_register_service(self.service_info, allow_name_change=True)
         
         logger.info(f"Zeroconf service registered: {registration_name} at {local_ip}:{port}")
 

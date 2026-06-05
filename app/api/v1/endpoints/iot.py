@@ -39,7 +39,36 @@ def get_tank_dashboard(tank_id: int, request: Request, db: Session = Depends(get
     ).order_by(DailyReading.timestamp.desc()).first()
 
     if not latest_reading:
-        raise HTTPException(status_code=404, detail="No readings found for this tank")
+        return DashboardResponse(
+            tank_id=tank.id,
+            tank_name=tank.tank_name,
+            last_updated=datetime.now(),
+            image_url="",
+            health_status="NO DATA",
+            profile_detected="No readings uploaded yet",
+            predicted_class="Unknown",
+            is_anomaly=False,
+            macro_scale=0.0,
+            micro_scale=0.0,
+            telemetry=TelemetryData(
+                ph=0.0,
+                ec=0.0,
+                water_temp=0.0,
+                status="No Data"
+            ),
+            estimated_nutrients=NutrientEstimation(
+                n_ppm=0.0,
+                p_ppm=0.0,
+                k_ppm=0.0,
+                total_estimated_ppm=0.0
+            ),
+            advisory=AdvisoryInsight(
+                summary="No Telemetry Data",
+                explanation="This tank has no uploaded daily readings or sensor telemetry yet.",
+                farmer_action="Ensure the Raspberry Pi is running and actively uploading sensor data."
+            ),
+            alert=None
+        )
 
     # 3. Fetch AI Prediction for that reading
     prediction = db.query(NPKPrediction).filter(

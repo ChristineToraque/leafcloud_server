@@ -53,6 +53,18 @@ uvicorn app.main:app --reload
 ```
 The API will be available at `http://localhost:8000` and the interactive docs at `http://localhost:8000/docs`.
 
+### 6. Quick Restart on Windows (WSL PostgreSQL)
+If you have shut down the system and want to start the server again on Windows using WSL PostgreSQL, run these commands in Windows PowerShell:
+
+1. **Start PostgreSQL in WSL**:
+   ```powershell
+   wsl sudo service postgresql start
+   ```
+2. **Activate environment and start server**:
+   ```powershell
+   (Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned) ; (& .venv\Scripts\Activate.ps1) ; $env:PYTHONPATH="." ; uvicorn app.main:app --reload
+   ```
+
 ---
 
 ## 📖 Documentation Index
@@ -103,6 +115,8 @@ For detailed guides, please refer to our documentation pages:
 42. **[Model V11 Evaluation](docs/page-44-model-v11-evaluation-analysis.md)** - Detailed analysis of V11 Independent Dual-Fusion performance.
 43. **[Capstone Project Document Updates](docs/page-45-capstone-updates.md)** - Guidelines and tables to update the thesis document with V11 model results.
 44. **[Model Evolution History (V1 to V11)](docs/page-47-model-evolution-history.md)** - Comprehensive history of the AI model design iterations, technical bottlenecks, and architectural resolutions.
+45. **[Server Setup & PostgreSQL Guide](docs/page-48-setup-guide.md)** - Comprehensive step-by-step developer's guide for server installation, SQLite/PostgreSQL configuration, and database migration.
+
 
 
 

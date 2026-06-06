@@ -34,6 +34,10 @@ Or by using our provided verification script:
 ~/.env_leafcloud/bin/python scripts/verify-zeroconf.py
 ```
 
+> [!TIP]
+> To manually register a temporary `_leafcloud._tcp` service for testing without starting the FastAPI server, or to troubleshoot common `dns-sd` command mistakes, see the [Manual Zeroconf Service Registration Guide](file:///Users/fil/Fil/leafcloud/mimeng_leafcloud_server_v2/docs/page-49-manual-zeroconf-testing.md).
+
+
 ## 6. Dependencies
 *   `zeroconf`: The Python library used for mDNS broadcasting.
 

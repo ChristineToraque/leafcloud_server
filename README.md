@@ -104,7 +104,7 @@ For detailed guides, please refer to our documentation pages:
 43. **[Capstone Project Document Updates](docs/page-45-capstone-updates.md)** - Guidelines and tables to update the thesis document with V11 model results.
 44. **[Model Evolution History (V1 to V11)](docs/page-47-model-evolution-history.md)** - Comprehensive history of the AI model design iterations, technical bottlenecks, and architectural resolutions.
 45. **[Conceptual Framework Guide (V11)](docs/page-48-conceptual-framework-guide.md)** - Guide to update Section 3.2 (Conceptual Framework) of the Capstone thesis matching the V11 model's Input-Process-Output flow.
-
+46. **[Manual Zeroconf Testing](docs/page-49-manual-zeroconf-testing.md)** - Reference guide for manually registering, browsing, and troubleshooting local mDNS service records using the `dns-sd` command-line tool.
 
 
 ---

@@ -18,12 +18,12 @@ We transitioned from a file-based database (SQLite) to a more powerful relationa
 
 The credentials set in the `.env` file for local development:
 
-*   **DB_USER**: `fil`
+*   **DB_USER**: `tin`
 *   **DB_PASSWORD**: (none)
 *   **DB_HOST**: `localhost`
 *   **DB_PORT**: `5432`
 *   **DB_NAME**: `leafcloud3`
-*   **DATABASE_URL**: `postgresql://fil:@localhost:5432/leafcloud3`
+*   **DATABASE_URL**: `postgresql://tin:@localhost:5432/leafcloud3`
 
 ---
 
@@ -32,7 +32,7 @@ The credentials set in the `.env` file for local development:
 ### A. Manual Creation (if needed)
 If you need to recreate the database manually:
 ```bash
-psql -U fil -d postgres -c "CREATE DATABASE leafcloud3;"
+psql -U tin -d postgres -c "CREATE DATABASE leafcloud3;"
 ```
 
 ### B. Database Query Utility Script
@@ -78,7 +78,7 @@ Instead of automatic table creation, we now use **Alembic** for more controlled 
 2.  **Check PostgreSQL Tables**:
     You can check if tables were created using `psql`:
     ```bash
-    psql -U fil -d leafcloud3 -c "\dt"
+    psql -U tin -d leafcloud3 -c "\dt"
     ```
 3.  **Test Login**:
     When the server starts, it will still seed the default admin user in PostgreSQL. You can test the login endpoint using `curl` (see `docs/page-1-login.md`).
@@ -106,27 +106,27 @@ Run the automated script in the root directory:
 ### B. Manual Backup Commands
 *   **Custom Compressed Format (Recommended)**:
     ```bash
-    pg_dump -h localhost -p 5432 -U fil -F c -b -v -f exports/leafcloud3_backup.dump leafcloud3
+    pg_dump -h localhost -p 5432 -U tin -F c -b -v -f exports/leafcloud3_backup.dump leafcloud3
     ```
 *   **Plain Text SQL Format**:
     ```bash
-    pg_dump -h localhost -p 5432 -U fil -F p -v -f exports/leafcloud3_backup.sql leafcloud3
+    pg_dump -h localhost -p 5432 -U tin -F p -v -f exports/leafcloud3_backup.sql leafcloud3
     ```
 
 ### C. Restoring from a Backup
 *   **For Custom Compressed Format (`.dump`)**:
     1. Recreate the database clean:
        ```bash
-       dropdb -h localhost -U fil leafcloud3
-       createdb -h localhost -U fil leafcloud3
+       dropdb -h localhost -U tin leafcloud3
+       createdb -h localhost -U tin leafcloud3
        ```
     2. Run `pg_restore`:
        ```bash
-       pg_restore -h localhost -p 5432 -U fil -d leafcloud3 -v exports/leafcloud3_backup_XXXX.dump
+       pg_restore -h localhost -p 5432 -U tin -d leafcloud3 -v exports/leafcloud3_backup_XXXX.dump
        ```
 *   **For Plain SQL Format (`.sql`)**:
     ```bash
-    psql -h localhost -U fil -d leafcloud3 -f exports/leafcloud3_backup.sql
+    psql -h localhost -U tin -d leafcloud3 -f exports/leafcloud3_backup.sql
     ```
 
 ---

@@ -185,6 +185,7 @@ class Orchestrator:
                 if all(k in payload for k in required_keys):
                     # Check calibration status from the server (mobile toggle)
                     is_calibrating = False
+                    calibrating_sensors = []
                     try:
                         calib_url = f"{self.server_url}/api/v1/calibration/"
                         calib_response = requests.get(calib_url, timeout=3.0)
@@ -192,7 +193,7 @@ class Orchestrator:
                             for cal in calib_response.json():
                                 if cal.get("is_calibrating") is True:
                                     is_calibrating = True
-                                    break
+                                    calibrating_sensors.append(cal)
                     except Exception as e:
                         # Fall back to False if connection fails
                         pass
@@ -200,7 +201,23 @@ class Orchestrator:
                     if is_calibrating:
                         current_time = time.time()
                         if not hasattr(self, "_last_calibration_print") or current_time - self._last_calibration_print >= 10:
-                            print("⚠️ [Orchestrator] Calibration mode is active on the server. Suspending uploads...")
+                            sensor_names = ", ".join([c.get("sensor_name", "Unknown") for c in calibrating_sensors])
+                            print(f"⚠️ [Orchestrator] Calibration mode is active on the server for: {sensor_names}. Suspending uploads...")
+                            
+                            # Load local calibration config
+                            cal_data = {}
+                            cal_file = os.path.join(os.path.dirname(__file__), "calibration_config.json")
+                            if not os.path.exists(cal_file):
+                                cal_file = "calibration_config.json"
+                            if os.path.exists(cal_file):
+                                try:
+                                    with open(cal_file, "r") as f:
+                                        cal_data = json.load(f)
+                                except Exception:
+                                    pass
+                            
+                            print(f"🔧 [Orchestrator] Local Calibration Config: EC_K_VALUE = {cal_data.get('EC_K_VALUE', 'N/A')}, CAL_POINTS = {cal_data.get('CAL_POINTS', 'N/A')}")
+                            print(f"📊 [Orchestrator] Current Payload Readings: Temp = {payload.get('temperature')}°C, EC = {payload.get('ec')} mS/cm, pH = {payload.get('ph')}")
                             self._last_calibration_print = current_time
                         fcntl.flock(f, fcntl.LOCK_UN)
                         return

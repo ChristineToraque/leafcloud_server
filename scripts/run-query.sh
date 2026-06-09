@@ -7,7 +7,7 @@ fi
 
 # Default DB URL if not set
 # Updated to leafcloud3 as per the recent database setup
-DB_URL=${DATABASE_URL:-"postgresql://fil:@localhost/leafcloud3"}
+DB_URL=${DATABASE_URL:-"postgresql://tin:@localhost/leafcloud3"}
 
 APPEND=false
 ARGS=()

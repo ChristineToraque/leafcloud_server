@@ -1,4 +1,4 @@
-[Prev](./page-47-model-evolution-history.md) | [Index](../README.md)
+[Prev](./page-46-model-evolution-history.md) | [Next](./page-48-manual-zeroconf-testing.md)
 
 # Guide for Capstone Section 3.2: System Conceptual Framework (English Only)
 

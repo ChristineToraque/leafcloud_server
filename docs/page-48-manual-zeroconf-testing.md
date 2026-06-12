@@ -1,3 +1,5 @@
+[Prev](./page-47-conceptual-framework-guide.md)
+
 # Manual Zeroconf (mDNS) Service Registration Guide
 
 This document provides a reference for manually registering, browsing, and resolving the Zeroconf (mDNS) services for LeafCloud Server V2 using the native `dns-sd` command-line tool.

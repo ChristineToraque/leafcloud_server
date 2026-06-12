@@ -1,4 +1,4 @@
-[Prev](./page-45-capstone-updates.md) | [Index](../README.md)
+[Prev](./page-45-capstone-updates.md) | [Next](./page-47-conceptual-framework-guide.md)
 
 # LeafCloud Nutrient Classifier — Model Evolution History (V1 → V11)
 

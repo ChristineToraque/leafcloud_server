@@ -1,4 +1,4 @@
-[Prev](./page-44-model-v11-evaluation-analysis.md) | [Index](../README.md)
+[Prev](./page-44-model-v11-evaluation-analysis.md) | [Next](./page-46-model-evolution-history.md)
 
 # Capstone Project Document Update Guide — V11 AI Model Revisions
 

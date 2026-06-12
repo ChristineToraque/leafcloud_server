@@ -10,7 +10,6 @@ class DailyReading(Base):
     ph = Column(Float)
     ec = Column(Float)
     water_temp = Column(Float)
-    status = Column(String(50), default="pending")
     tank_id = Column(Integer, ForeignKey("tank_configs.id"))
     experiment_id = Column(Integer, ForeignKey("experiments.id"), nullable=True)
     is_new_data = Column(Boolean, default=False)

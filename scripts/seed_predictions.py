@@ -104,8 +104,7 @@ def seed_daily_readings(count: int = 50):
                 ec=round(random.uniform(0.04, 1.51), 2),  # matches actual training data range (0.04–1.51 mS/cm)
                 water_temp=round(random.uniform(24.0, 29.0), 1),
                 tank_id=tank.id,
-                is_new_data=True,
-                status="pending"
+                is_new_data=True
             )
 
             # [STEP 22] Stage the new reading object so it will be saved on the next db.commit().

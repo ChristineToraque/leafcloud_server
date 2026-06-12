@@ -193,8 +193,7 @@ async def upload_iot_data(
         ec=ec,
         water_temp=temp,
         tank_id=tank_id,
-        is_new_data=True,
-        status="pending"
+        is_new_data=True
     )
     db.add(daily_reading)
     db.commit()

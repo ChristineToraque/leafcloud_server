@@ -1,4 +1,4 @@
-[Prev](./page-47-conceptual-framework-guide.md)
+[Prev](./page-47-conceptual-framework-guide.md) | [Next](./page-49-nutrient-classifier-v11-code-walkthrough.md)
 
 # Manual Zeroconf (mDNS) Service Registration Guide
 
@@ -71,3 +71,5 @@ In production and actual dev runs, manual registration is not required. The serv
 *   [DiscoveryService](file:///Users/fil/Fil/leafcloud/mimeng_leafcloud_server_v2/app/services/discovery.py#L9) automatically starts broadcasting this service upon FastAPI startup.
 *   [verify-zeroconf.py](file:///Users/fil/Fil/leafcloud/mimeng_leafcloud_server_v2/scripts/verify-zeroconf.py) handles automated scanning/browsing during local verification.
 *   For more details, see [Network Discovery: Zeroconf (mDNS)](file:///Users/fil/Fil/leafcloud/mimeng_leafcloud_server_v2/docs/page-4-zeroconf-discovery.md).
+
+[Prev](./page-47-conceptual-framework-guide.md) | [Next](./page-49-nutrient-classifier-v11-code-walkthrough.md)

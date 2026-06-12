@@ -73,7 +73,10 @@ def filter_missing_images(df: pd.DataFrame) -> pd.DataFrame:
     # file-not-found error mid-epoch.
     if df.empty:
         return df
+    
     print('🔍 Verifying image files on disk...')
+
+    # Kani kay function ni nga mag check kung ang path ba kay accessible (exists and readable). I-try open ang file, if successful return True, else False.
     def is_accessible(path):
         try:
             with open(path, 'rb') as f:
@@ -81,11 +84,18 @@ def filter_missing_images(df: pd.DataFrame) -> pd.DataFrame:
             return True
         except:
             return False
+
+    # kani nga line magpagawas ni sa terminal ang progress bar samtang gi check ang files, gamit ang tqdm library.
     tqdm.pandas(desc='Checking files')
+
+    # katong function nga `is_accessible`` kay tawagun diri.
+    # para gamiton pag check isa-isa ang mga image paths sa dataframe, ug i-store ang results (True/False) sa new column nga 'exists'.
     df['exists'] = df['image_path'].progress_apply(is_accessible)
+    
     missing = (~df['exists']).sum()
     if missing:
         print(f'⚠️  {missing} inaccessible files removed.')
+
     return df[df['exists']].drop(columns=['exists']).reset_index(drop=True)
 
 
@@ -179,13 +189,14 @@ def calculate_sample_weights(df: pd.DataFrame) -> pd.DataFrame:
 
 # Python reads and registers this function definition, but does NOT run its body yet.
 def get_dataset():
-    # [STEP 7] Connect to the database using the URL from settings.
+    # [STEP 7] Connect sa database para maka run ta og mga query.
     print('🔌 Connecting to Database...')
     engine = create_engine(DB_URL)
 
-    # [STEP 8] Call fetch_raw_data() — jumps into that function body now.
+    # [STEP 8] Call fetch_raw_data() — naa function naka define ani diri ra oud nga file, search lang
     df = fetch_raw_data(engine)
-    # [STEP 10] fetch_raw_data() is done. Call filter_missing_images() — jumps into that function body.
+
+    # [STEP 10] Call filter_missing_images() — naa function naka define ani diri ra oud nga file, search lang
     df = filter_missing_images(df)
 
     # [STEP 12] filter_missing_images() is done. If no valid images remain, return two empty DataFrames.

@@ -1,3 +1,5 @@
+[Prev](./page-48-manual-zeroconf-testing.md)
+
 # Page 49 — Nutrient Classifier V11: Code Walkthrough
 
 Line-by-line explanation of the top-level constants in `scripts/nutrient_classifier_v11.py`.
@@ -80,3 +82,69 @@ df = pd.read_sql(query, engine)
 ```
 
 Executes the SQL query against the database and loads the results directly into a Pandas DataFrame. Each row in `df` becomes one training sample — containing the image file path, the three sensor readings (pH, EC, water temp), and the bucket label (Water/NPK/Micro/Mix). The rest of the script then uses this DataFrame to load images, normalize sensor values, and feed everything into model training.
+
+---
+
+```python
+if df.empty:
+    return df
+```
+
+An early exit guard inside `filter_missing_images()`. If the DataFrame has no rows (e.g. the database returned nothing), there is nothing to verify, so the function returns immediately rather than proceeding with file-existence checks on an empty dataset. Prevents unnecessary work and avoids errors that would occur if later code assumed at least one row existed.
+
+---
+
+```python
+print('🔍 Verifying image files on disk...')
+def is_accessible(path):
+    try:
+        with open(path, 'rb') as f:
+            f.read(1)
+        return True
+    except:
+        return False
+```
+
+Defines a helper function that checks whether an image file actually exists and is readable on disk. It tries to open the file in binary mode and read one byte — if that succeeds, the file is accessible and returns `True`; if anything goes wrong (file missing, permission error, corrupted path), it catches the exception and returns `False`. This is used to filter out rows pointing to missing images before training starts, so the model never hits a file-not-found error mid-epoch.
+
+---
+
+```python
+tqdm.pandas(desc='Checking files')
+```
+
+Patches Pandas with a progress bar from the `tqdm` library. After this call, `.progress_apply()` can be used instead of `.apply()` on a DataFrame column — it behaves identically but displays a live progress bar labeled `Checking files` in the terminal so you can see how many image paths have been verified so far.
+
+---
+
+```python
+df['exists'] = df['image_path'].progress_apply(is_accessible)
+```
+
+Runs the `is_accessible` function on every row's `image_path` and stores the result (`True` or `False`) in a new column called `exists`. After this line, each row knows whether its image file is actually on disk. The progress bar from `tqdm.pandas()` shows live progress as it checks each file.
+
+---
+
+```python
+missing = (~df['exists']).sum()
+if missing:
+    print(f'⚠️  {missing} inaccessible files removed.')
+```
+
+Counts how many rows have `exists = False` by inverting the column with `~` and summing the `True` values. If any missing files were found, prints a warning with the count. This gives immediate visibility into how many training samples will be dropped before the DataFrame is filtered down to only accessible images.
+
+---
+
+```python
+return df[df['exists']].drop(columns=['exists']).reset_index(drop=True)
+```
+
+Three operations chained together on one line:
+
+- `df[df['exists']]` — keeps only rows where `exists` is `True`, discarding any with missing image files
+- `.drop(columns=['exists'])` — removes the temporary `exists` column since it was only needed for filtering and isn't part of the training data
+- `.reset_index(drop=True)` — resets row numbers to 0, 1, 2, … so the index is clean and contiguous after rows were dropped
+
+Returns the filtered, cleaned DataFrame ready for training.
+
+[Prev](./page-48-manual-zeroconf-testing.md)

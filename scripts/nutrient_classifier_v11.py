@@ -92,10 +92,15 @@ def filter_missing_images(df: pd.DataFrame) -> pd.DataFrame:
     # para gamiton pag check isa-isa ang mga image paths sa dataframe, ug i-store ang results (True/False) sa new column nga 'exists'.
     df['exists'] = df['image_path'].progress_apply(is_accessible)
     
+    # bilangon nato pila ka files ang na check, ug pila ang na mark as missing (exists=False). 
+    # I-print nato ni sa terminal para mahibal-an kung unsa kadaghan ang problema sa missing files.
     missing = (~df['exists']).sum()
     if missing:
         print(f'⚠️  {missing} inaccessible files removed.')
 
+    # i-filter nato ang dataframe para i-keep lang ang rows nga naay valid images (exists=True), 
+    # unya i-drop nato ang 'exists' column kay wala na siya gamit after filtering. 
+    # I-reset nato ang index para tidy ang dataframe before returning.
     return df[df['exists']].drop(columns=['exists']).reset_index(drop=True)
 
 
@@ -199,7 +204,7 @@ def get_dataset():
     # [STEP 10] Call filter_missing_images() — naa function naka define ani diri ra oud nga file, search lang
     df = filter_missing_images(df)
 
-    # [STEP 12] filter_missing_images() is done. If no valid images remain, return two empty DataFrames.
+    # [STEP 12] If no valid images remain, return two empty DataFrames.
     if df.empty:
         return df, df
 
@@ -207,11 +212,12 @@ def get_dataset():
     print('\nClass distribution:')
     print(df['bucket_label'].value_counts())
 
-    # [STEP 13] Call calculate_continuous_targets() — jumps into that function body now.
+    # [STEP 13] Call calculate_continuous_targets() — naa function naka define ani diri ra oud nga file, search lang
     df = calculate_continuous_targets(df)
 
     # [STEP 16] calculate_continuous_targets() is done. Call apply_normalization() — jumps into that function body.
     df = apply_normalization(df)
+    
     # [STEP 18] apply_normalization() is done. Map each string label to an integer index for one-hot encoding.
     df['label_idx'] = df['bucket_label'].map(LABEL_TO_IDX)
 

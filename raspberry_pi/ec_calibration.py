@@ -102,7 +102,7 @@ if __name__ == "__main__":
 
         i2c = busio.I2C(board.SCL, board.SDA)
         ads = ADS.ADS1115(i2c, address=0x48)
-        ec_channel = AnalogIn(ads, 1)
+        ec_channel = AnalogIn(ads, 0)
         print("✅ Hardware initialized successfully.")
     except Exception as e:
         print(f"❌ Hardware Initialization Error: {e}")

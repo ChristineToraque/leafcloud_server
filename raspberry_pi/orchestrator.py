@@ -28,6 +28,7 @@ class Orchestrator:
         self.running = True
         self.server_url = None
         self.last_upload_time = 0
+        self.suspended_services = set()
 
     def discover_leafcloud_server(self) -> str:
         """Finds the server URL via Zeroconf or falls back to localhost."""
@@ -251,14 +252,17 @@ class Orchestrator:
                         fcntl.flock(f, fcntl.LOCK_UN)
                         return
                         
-                    files = {
-                        "image": (os.path.basename(image_path), open(image_path, "rb"), "image/jpeg")
-                    }
-                    
-                    upload_url = f"{self.server_url}/api/v1/iot/upload"
-                    
                     try:
+                        with open(image_path, "rb") as img_file:
+                            img_data = img_file.read()
+                            
+                        files = {
+                            "image": (os.path.basename(image_path), img_data, "image/jpeg")
+                        }
+                        
+                        upload_url = f"{self.server_url}/api/v1/iot/upload"
                         response = requests.post(upload_url, data=data, files=files, timeout=10.0)
+                        
                         if response.status_code in [200, 201]:
                             print(f"✅ [Orchestrator] Data successfully uploaded! Server Response: {response.json()}")
                             self.last_upload_time = time.time()
@@ -282,6 +286,68 @@ class Orchestrator:
         except Exception as e:
             print(f"❌ [Orchestrator] Error during payload coordination: {e}")
 
+    def suspend_service(self, name: str):
+        """Suspends a service if it is running, and marks it as suspended."""
+        if name not in self.suspended_services:
+            self.suspended_services.add(name)
+        proc = self.processes.get(name)
+        if proc and proc.poll() is None:
+            print(f"🛑 [Orchestrator] Suspending service '{name}' due to calibration mode...")
+            proc.terminate()
+            try:
+                proc.wait(timeout=3)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+        # Remove from active processes so it's not checked or respawned
+        self.processes.pop(name, None)
+
+    def resume_service(self, name: str):
+        """Resumes a suspended service."""
+        if name in self.suspended_services:
+            self.suspended_services.remove(name)
+        if name not in self.processes:
+            print(f"🔄 [Orchestrator] Resuming suspended service '{name}'...")
+            self.start_service(name, BACKGROUND_SERVICES[name])
+
+    def update_calibration_suspension(self):
+        """Fetches active calibration status from the server and suspends/resumes reader services."""
+        if not self.server_url:
+            return
+
+        is_ph_calibrating = False
+        is_ec_calibrating = False
+
+        try:
+            calib_url = f"{self.server_url}/api/v1/calibration/"
+            response = requests.get(calib_url, timeout=3.0)
+            if response.status_code == 200:
+                for cal in response.json():
+                    if cal.get("is_calibrating") is True:
+                        sensor_name = cal.get("sensor_name", "")
+                        if "ph" in sensor_name:
+                            is_ph_calibrating = True
+                        elif "ec" in sensor_name:
+                            is_ec_calibrating = True
+        except Exception:
+            # Silent fallback if offline
+            pass
+
+        # Handle pH Reader suspension
+        if is_ph_calibrating:
+            if "pH Reader" in self.processes:
+                self.suspend_service("pH Reader")
+        else:
+            if "pH Reader" not in self.processes and "pH Reader" in self.suspended_services:
+                self.resume_service("pH Reader")
+
+        # Handle EC Reader suspension
+        if is_ec_calibrating:
+            if "EC Reader" in self.processes:
+                self.suspend_service("EC Reader")
+        else:
+            if "EC Reader" not in self.processes and "EC Reader" in self.suspended_services:
+                self.resume_service("EC Reader")
+
     def monitor_and_loop(self):
         """Main orchestrator monitoring loop."""
         self.server_url = self.discover_leafcloud_server()
@@ -297,11 +363,16 @@ class Orchestrator:
         
         try:
             while self.running:
+                # Suspend/Resume readers based on active calibration mode
+                self.update_calibration_suspension()
+
                 # Check if payload is complete and upload it
                 self.check_and_upload_payload()
 
                 # 3. Check health of background services and respawn if dead
                 for name, proc in list(self.processes.items()):
+                    if name in self.suspended_services:
+                        continue
                     if proc.poll() is not None:
                         print(f"⚠️ [Orchestrator] Service '{name}' terminated unexpectedly. Respawning...")
                         self.start_service(name, BACKGROUND_SERVICES[name])

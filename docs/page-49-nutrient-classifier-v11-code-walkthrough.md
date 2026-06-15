@@ -147,4 +147,44 @@ Three operations chained together on one line:
 
 Returns the filtered, cleaned DataFrame ready for training.
 
+---
+
+```python
+df['timestamp'] = pd.to_datetime(df['timestamp'])
+```
+
+Converts the `timestamp` column from a raw string (e.g. `"2026-05-01 08:30:00"`) into a proper Pandas `datetime` object. This allows the column to be used for time-based operations like sorting, grouping by date, or train/test splitting by time period — none of which work correctly on plain strings.
+
+---
+
+```python
+for exp_id, group in df.groupby('experiment_id'):
+```
+
+Iterates over the DataFrame split by `experiment_id` — each iteration gives one experiment's rows as a separate sub-DataFrame (`group`). Inside the loop, it finds the earliest and latest timestamp for that experiment and stores them in `exp_time_bounds`. This is used to calculate how far along (in time) each reading falls within its experiment — needed for computing continuous time-based depletion targets.
+
+**Example:** say `df` looks like this:
+
+| image_path | experiment_id | timestamp |
+|---|---|---|
+| crop1.jpg | 1 | 2026-05-01 |
+| crop2.jpg | 1 | 2026-05-05 |
+| crop3.jpg | 2 | 2026-05-10 |
+| crop4.jpg | 2 | 2026-05-15 |
+
+`groupby('experiment_id')` splits it into two groups:
+
+- **exp_id = 1** → rows for crop1 and crop2 → `min_ts = 2026-05-01`, `max_ts = 2026-05-05`
+- **exp_id = 2** → rows for crop3 and crop4 → `min_ts = 2026-05-10`, `max_ts = 2026-05-15`
+
+Result stored in `exp_time_bounds`:
+```python
+{
+    1: (2026-05-01, 2026-05-05),
+    2: (2026-05-10, 2026-05-15),
+}
+```
+
+Later, each reading's timestamp is compared against its experiment's min/max to compute how far into the depletion cycle it falls (0.0 = start, 1.0 = end).
+
 [Prev](./page-48-manual-zeroconf-testing.md)

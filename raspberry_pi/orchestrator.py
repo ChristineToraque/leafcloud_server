@@ -29,6 +29,9 @@ class Orchestrator:
         self.server_url = None
         self.last_upload_time = 0
         self.suspended_services = set()
+        self.latest_telemetry = {"ph": None, "ec": None, "temperature": None}
+        self.last_telemetry_send_time = 0
+        self.telemetry_interval = 3.0 # Send telemetry every 3 seconds
 
     def discover_leafcloud_server(self) -> str:
         """Finds the server URL via Zeroconf or falls back to localhost."""
@@ -83,6 +86,16 @@ class Orchestrator:
                     proc.kill()
         print("✅ [Orchestrator] Cleanup finished.")
 
+    def load_local_settings(self) -> dict:
+        """Helper to safely load settings from local_settings.json."""
+        settings_file = os.path.join(os.path.dirname(__file__), "local_settings.json")
+        if os.path.exists(settings_file):
+            try:
+                with open(settings_file, "r") as f:
+                    return json.load(f)
+            except Exception as e:
+                print(f"⚠️ [Orchestrator] Error reading local settings: {e}")
+        return {}
 
     def resolve_tank_config(self) -> tuple:
         """
@@ -99,16 +112,8 @@ class Orchestrator:
             response = requests.get(url, timeout=5.0)
             if response.status_code == 200:
                 configs = response.json()
-                # Find local setting if any
-                local_tank_id = None
-                settings_file = os.path.join(os.path.dirname(__file__), "local_settings.json")
-                if os.path.exists(settings_file):
-                    try:
-                        with open(settings_file, "r") as f:
-                            settings = json.load(f)
-                            local_tank_id = settings.get("tank_id")
-                    except Exception:
-                        pass
+                local_settings = self.load_local_settings()
+                local_tank_id = local_settings.get("tank_id")
                 
                 target_config = None
                 if local_tank_id is not None:
@@ -132,17 +137,9 @@ class Orchestrator:
             print(f"⚠️ [Orchestrator] Failed to fetch tank configs from server: {e}")
 
         # 2. Load from local settings
-        local_tank_id = None
-        local_interval = None
-        settings_file = os.path.join(os.path.dirname(__file__), "local_settings.json")
-        if os.path.exists(settings_file):
-            try:
-                with open(settings_file, "r") as f:
-                    settings = json.load(f)
-                    local_tank_id = settings.get("tank_id")
-                    local_interval = settings.get("upload_interval_seconds")
-            except Exception as e:
-                print(f"⚠️ [Orchestrator] Error reading local settings: {e}")
+        local_settings = self.load_local_settings()
+        local_tank_id = local_settings.get("tank_id")
+        local_interval = local_settings.get("upload_interval_seconds")
 
         # Resolve tank_id: server (highest) -> local -> fallback 1
         final_tank_id = 1
@@ -161,15 +158,15 @@ class Orchestrator:
         return final_tank_id, final_interval
 
     def check_and_upload_payload(self):
-        """Safely inspects payload.json and uploads data to the server if all parameters are ready and cooldown has elapsed."""
+        """Safely inspects payload.json, uploads telemetry, and uploads daily readings when cooldown has elapsed."""
         if not os.path.exists(PAYLOAD_FILE):
             return
 
         try:
+            # 1. Check payload.json for new sensor data
+            telemetry_updated = False
             with open(PAYLOAD_FILE, "a+") as f:
-                # Exclusive lock during read/write
                 fcntl.flock(f, fcntl.LOCK_EX)
-                
                 f.seek(0)
                 content = f.read()
                 payload = {}
@@ -181,108 +178,174 @@ class Orchestrator:
                         fcntl.flock(f, fcntl.LOCK_UN)
                         return
 
-                # Check if all required sensor values are present
-                required_keys = ["ec", "ph", "temperature", "image_path"]
-                if all(k in payload for k in required_keys):
-                    # Check calibration status from the server (mobile toggle)
-                    is_calibrating = False
-                    calibrating_sensors = []
-                    try:
-                        calib_url = f"{self.server_url}/api/v1/calibration/"
-                        calib_response = requests.get(calib_url, timeout=3.0)
-                        if calib_response.status_code == 200:
-                            for cal in calib_response.json():
-                                if cal.get("is_calibrating") is True:
-                                    is_calibrating = True
-                                    calibrating_sensors.append(cal)
-                    except Exception as e:
-                        # Fall back to False if connection fails
-                        pass
+                # Update local cache and clear sensor keys so reader scripts can write new values
+                for key, cache_key in [("ph", "ph"), ("ec", "ec"), ("temperature", "temperature")]:
+                    if key in payload:
+                        self.latest_telemetry[cache_key] = payload[key]
+                        payload.pop(key)
+                        telemetry_updated = True
 
-                    if is_calibrating:
-                        current_time = time.time()
-                        if not hasattr(self, "_last_calibration_print") or current_time - self._last_calibration_print >= 10:
-                            sensor_names = ", ".join([c.get("sensor_name", "Unknown") for c in calibrating_sensors])
-                            print(f"⚠️ [Orchestrator] Calibration mode is active on the server for: {sensor_names}. Suspending uploads...")
-                            
-                            # Load local calibration config
-                            cal_data = {}
-                            cal_file = os.path.join(os.path.dirname(__file__), "calibration_config.json")
-                            if not os.path.exists(cal_file):
-                                cal_file = "calibration_config.json"
-                            if os.path.exists(cal_file):
-                                try:
-                                    with open(cal_file, "r") as f:
-                                        cal_data = json.load(f)
-                                except Exception:
-                                    pass
-                            
-                            print(f"🔧 [Orchestrator] Local Calibration Config: EC_K_VALUE = {cal_data.get('EC_K_VALUE', 'N/A')}, CAL_POINTS = {cal_data.get('CAL_POINTS', 'N/A')}")
-                            print(f"📊 [Orchestrator] Current Payload Readings: Temp = {payload.get('temperature')}°C, EC = {payload.get('ec')} mS/cm, pH = {payload.get('ph')}")
-                            self._last_calibration_print = current_time
-                        fcntl.flock(f, fcntl.LOCK_UN)
-                        return
+                if telemetry_updated:
+                    f.seek(0)
+                    f.truncate()
+                    json.dump(payload, f, indent=4)
+                
+                fcntl.flock(f, fcntl.LOCK_UN)
 
-                    active_tank_id, upload_interval = self.resolve_tank_config()
-                    current_time = time.time()
-                    
-                    # Enforce upload interval cooldown
-                    if current_time - self.last_upload_time < upload_interval:
-                        # Prevent console spam: only print every 10 seconds during cooldown
-                        if not hasattr(self, "_last_cooldown_print") or current_time - self._last_cooldown_print >= 10:
-                            remaining = int(upload_interval - (current_time - self.last_upload_time))
-                            print(f"⏳ [Orchestrator] Payload populated, but waiting for upload interval cooldown ({remaining}s remaining)...")
-                            self._last_cooldown_print = current_time
-                        fcntl.flock(f, fcntl.LOCK_UN)
-                        return
-                    
-                    print("📤 [Orchestrator] Cooldown elapsed and payload is ready! Preparing upload...")
-                    print(f"🎯 [Orchestrator] Target Tank ID: {active_tank_id}")
-                    
-                    data = {
+            # 2. Upload telemetry to the server
+            current_time = time.time()
+            active_tank_id, upload_interval = self.resolve_tank_config()
+
+            if telemetry_updated or (current_time - self.last_telemetry_send_time >= self.telemetry_interval):
+                if any(v is not None for v in self.latest_telemetry.values()):
+                    telemetry_payload = {
                         "tank_id": active_tank_id,
-                        "ph": payload["ph"],
-                        "ec": payload["ec"],
-                        "temp": payload["temperature"]
+                        "ph": self.latest_telemetry["ph"],
+                        "ec": self.latest_telemetry["ec"],
+                        "water_temp": self.latest_telemetry["temperature"]
                     }
-                    
-                    image_path = payload["image_path"]
+                    try:
+                        telemetry_url = f"{self.server_url}/api/v1/iot/telemetry"
+                        response = requests.post(telemetry_url, json=telemetry_payload, timeout=5.0)
+                        if response.status_code == 200:
+                            self.last_telemetry_send_time = current_time
+                            if not hasattr(self, "_last_telemetry_print") or current_time - self._last_telemetry_print >= 10:
+                                print(f"📡 [Orchestrator] Telemetry updated: pH={self.latest_telemetry['ph']}, EC={self.latest_telemetry['ec']}, Temp={self.latest_telemetry['temperature']}°C")
+                                self._last_telemetry_print = current_time
+                        else:
+                            print(f"❌ [Orchestrator] Telemetry post failed (Status {response.status_code}): {response.text}")
+                    except Exception as e:
+                        print(f"⚠️ [Orchestrator] Failed to send telemetry: {e}")
+
+            # 3. Handle Full Daily Upload (with image if camera is enabled)
+            local_settings = self.load_local_settings()
+            enable_camera = local_settings.get("enable_camera", True)
+
+            image_path = None
+            if enable_camera:
+                try:
+                    with open(PAYLOAD_FILE, "a+") as f:
+                        fcntl.flock(f, fcntl.LOCK_EX)
+                        f.seek(0)
+                        content = f.read()
+                        if content.strip():
+                            try:
+                                payload = json.loads(content)
+                                image_path = payload.get("image_path")
+                            except Exception:
+                                pass
+                        fcntl.flock(f, fcntl.LOCK_UN)
+                except Exception:
+                    pass
+
+            # Determine if we should perform the history upload
+            should_upload = False
+            if enable_camera:
+                if image_path:
+                    should_upload = True
+            else:
+                # Timer-driven history logging when camera is disabled
+                if current_time - self.last_upload_time >= upload_interval:
+                    should_upload = True
+
+            if should_upload:
+                # Check calibration status from the server
+                is_calibrating = False
+                calibrating_sensors = []
+                try:
+                    calib_url = f"{self.server_url}/api/v1/calibration/"
+                    calib_response = requests.get(calib_url, timeout=3.0)
+                    if calib_response.status_code == 200:
+                        for cal in calib_response.json():
+                            if cal.get("is_calibrating") is True:
+                                is_calibrating = True
+                                calibrating_sensors.append(cal)
+                except Exception:
+                    pass
+
+                if is_calibrating:
+                    if not hasattr(self, "_last_calibration_print") or current_time - self._last_calibration_print >= 10:
+                        sensor_names = ", ".join([c.get("sensor_name", "Unknown") for c in calibrating_sensors])
+                        print(f"⚠️ [Orchestrator] Calibration mode is active on the server for: {sensor_names}. Suspending uploads...")
+                        self._last_calibration_print = current_time
+                    return
+
+                # Enforce cooldown check if camera is enabled (if disabled, should_upload was already timed check)
+                if enable_camera and (current_time - self.last_upload_time < upload_interval):
+                    if not hasattr(self, "_last_cooldown_print") or current_time - self._last_cooldown_print >= 10:
+                        remaining = int(upload_interval - (current_time - self.last_upload_time))
+                        print(f"⏳ [Orchestrator] Image captured, but waiting for upload interval cooldown ({remaining}s remaining)...")
+                        self._last_cooldown_print = current_time
+                    return
+
+                # Check if we have the necessary sensor values cached in-memory
+                if self.latest_telemetry["ph"] is None or self.latest_telemetry["ec"] is None or self.latest_telemetry["temperature"] is None:
+                    if not hasattr(self, "_last_cache_missing_print") or current_time - self._last_cache_missing_print >= 10:
+                        print("⏳ [Orchestrator] Ready for history upload, but waiting for all sensor readings (pH, EC, Temp) to populate cache...")
+                        self._last_cache_missing_print = current_time
+                    return
+
+                print("📤 [Orchestrator] Cooldown elapsed and payload is ready! Preparing upload...")
+                print(f"🎯 [Orchestrator] Target Tank ID: {active_tank_id}")
+
+                data = {
+                    "tank_id": active_tank_id,
+                    "ph": self.latest_telemetry["ph"],
+                    "ec": self.latest_telemetry["ec"],
+                    "temp": self.latest_telemetry["temperature"]
+                }
+
+                files = None
+                if enable_camera and image_path:
                     if not os.path.exists(image_path):
                         print(f"❌ [Orchestrator] Image file not found at {image_path}. Skipping upload.")
-                        fcntl.flock(f, fcntl.LOCK_UN)
                         return
-                        
                     try:
                         with open(image_path, "rb") as img_file:
                             img_data = img_file.read()
-                            
                         files = {
                             "image": (os.path.basename(image_path), img_data, "image/jpeg")
                         }
-                        
-                        upload_url = f"{self.server_url}/api/v1/iot/upload"
-                        response = requests.post(upload_url, data=data, files=files, timeout=10.0)
-                        
-                        if response.status_code in [200, 201]:
-                            print(f"✅ [Orchestrator] Data successfully uploaded! Server Response: {response.json()}")
-                            self.last_upload_time = time.time()
-                            
-                            # Clean the uploaded keys from payload
-                            for k in required_keys:
-                                payload.pop(k, None)
-                            
-                            # Write the cleared payload back
-                            f.seek(0)
-                            f.truncate()
-                            json.dump(payload, f, indent=4)
-                            print(f"🧹 [Orchestrator] Uploaded values cleared from {PAYLOAD_FILE}")
-                        else:
-                            print(f"❌ [Orchestrator] Server returned failure status code {response.status_code}: {response.text}")
-                    except requests.exceptions.RequestException as e:
-                        print(f"⚠️ [Orchestrator] Failed to connect to server for upload: {e}")
-                
-                # Release lock
-                fcntl.flock(f, fcntl.LOCK_UN)
+                    except Exception as e:
+                        print(f"❌ [Orchestrator] Error reading image: {e}")
+                        return
+
+                try:
+                    upload_url = f"{self.server_url}/api/v1/iot/upload"
+                    if files:
+                        response = requests.post(upload_url, data=data, files=files, timeout=15.0)
+                    else:
+                        response = requests.post(upload_url, data=data, timeout=15.0)
+
+                    if response.status_code in [200, 201]:
+                        print(f"✅ [Orchestrator] Data successfully uploaded! Server Response: {response.json()}")
+                        self.last_upload_time = time.time()
+
+                        # Clear image_path from payload.json if it was uploaded
+                        if enable_camera and image_path:
+                            try:
+                                with open(PAYLOAD_FILE, "a+") as f:
+                                    fcntl.flock(f, fcntl.LOCK_EX)
+                                    f.seek(0)
+                                    content = f.read()
+                                    payload = {}
+                                    if content.strip():
+                                        try:
+                                            payload = json.loads(content)
+                                        except Exception:
+                                            pass
+                                    payload.pop("image_path", None)
+                                    f.seek(0)
+                                    f.truncate()
+                                    json.dump(payload, f, indent=4)
+                                    fcntl.flock(f, fcntl.LOCK_UN)
+                                print(f"🧹 [Orchestrator] Uploaded image path cleared from {PAYLOAD_FILE}")
+                            except Exception as e:
+                                print(f"❌ [Orchestrator] Failed to clear image_path: {e}")
+                    else:
+                        print(f"❌ [Orchestrator] Server returned failure status code {response.status_code}: {response.text}")
+                except requests.exceptions.RequestException as e:
+                    print(f"⚠️ [Orchestrator] Failed to connect to server for upload: {e}")
         except Exception as e:
             print(f"❌ [Orchestrator] Error during payload coordination: {e}")
 
@@ -306,6 +369,11 @@ class Orchestrator:
         if name in self.suspended_services:
             self.suspended_services.remove(name)
         if name not in self.processes:
+            # Check enable_camera local settings if resuming camera
+            if name == "Camera Capture":
+                local_settings = self.load_local_settings()
+                if not local_settings.get("enable_camera", True):
+                    return
             print(f"🔄 [Orchestrator] Resuming suspended service '{name}'...")
             self.start_service(name, BACKGROUND_SERVICES[name])
 
@@ -352,11 +420,15 @@ class Orchestrator:
         """Main orchestrator monitoring loop."""
         self.server_url = self.discover_leafcloud_server()
         
+        local_settings = self.load_local_settings()
+        enable_camera = local_settings.get("enable_camera", True)
+
         # Start all long-running sensor and calibration scripts
         for name, script in BACKGROUND_SERVICES.items():
+            if name == "Camera Capture" and not enable_camera:
+                print("🚫 [Orchestrator] Camera Capture service disabled in local settings.")
+                continue
             self.start_service(name, script)
-
-        last_camera_time = 0
         
         print("\n⭐ [Orchestrator] IoT Orchestration Engine Active. Press Ctrl+C to terminate.")
         print("-" * 80)

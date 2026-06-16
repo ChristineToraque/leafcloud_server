@@ -11,6 +11,8 @@ from app.core.config import settings
 from app.models.tank_config import TankConfig
 from app.models.npk_prediction import NPKPrediction
 from app.models.daily_reading import DailyReading
+from app.models.live_telemetry import LiveTelemetry
+from app.schemas.telemetry import TelemetryPost, TelemetryResponse
 from app.schemas.dashboard import DashboardResponse, TelemetryData, NutrientEstimation, ActionableAlert, AdvisoryInsight
 from app.schemas.history import HistoryResponse
 from app.schemas.alert import AlertStatusResponse
@@ -119,7 +121,7 @@ def get_tank_dashboard(tank_id: int, request: Request, db: Session = Depends(get
         tank_id=tank.id,
         tank_name=tank.tank_name,
         last_updated=latest_reading.timestamp,
-        image_url=str(request.base_url).rstrip("/") + "/" + latest_reading.image_path.replace("\\", "/"),
+        image_url=str(request.base_url).rstrip("/") + "/" + latest_reading.image_path.replace("\\", "/") if latest_reading.image_path else "",
         health_status="HEALTHY" if macro_scale > 0.8 else "NUTRIENT DEFICIENT",
         profile_detected=profile,
         predicted_class=predicted_class,
@@ -153,7 +155,7 @@ async def upload_iot_data(
     ph: float = Form(...),
     ec: float = Form(...),
     temp: float = Form(...),
-    image: UploadFile = File(...),
+    image: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db)
 ):
     """
@@ -170,25 +172,27 @@ async def upload_iot_data(
     date_str = now.strftime("%Y-%m-%d")
     timestamp_str = now.strftime("%Y%m%d_%H%M%S")
     
-    # images/{date}/{tank_name}/
-    folder_path = os.path.join(settings.SOURCE_DIR, date_str, tank.tank_name.replace(" ", "_"))
-    os.makedirs(folder_path, exist_ok=True)
-    
-    file_extension = os.path.splitext(image.filename)[1]
-    filename = f"reading_{timestamp_str}_{uuid.uuid4().hex[:6]}{file_extension}"
-    file_path = os.path.join(folder_path, filename)
+    file_path = None
+    if image and image.filename:
+        # images/{date}/{tank_name}/
+        folder_path = os.path.join(settings.SOURCE_DIR, date_str, tank.tank_name.replace(" ", "_"))
+        os.makedirs(folder_path, exist_ok=True)
+        
+        file_extension = os.path.splitext(image.filename)[1]
+        filename = f"reading_{timestamp_str}_{uuid.uuid4().hex[:6]}{file_extension}"
+        file_path = os.path.join(folder_path, filename)
 
-    # 3. Save Image to Disk
-    try:
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(image.file, buffer)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Could not save image: {e}")
+        # 3. Save Image to Disk
+        try:
+            with open(file_path, "wb") as buffer:
+                shutil.copyfileobj(image.file, buffer)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Could not save image: {e}")
 
     # 4. Create Database Entry
     daily_reading = DailyReading(
         timestamp=now,
-        image_path=file_path.replace("\\", "/"),
+        image_path=file_path.replace("\\", "/") if file_path else None,
         ph=ph,
         ec=ec,
         water_temp=temp,
@@ -199,8 +203,9 @@ async def upload_iot_data(
     db.commit()
     db.refresh(daily_reading)
 
-    # 5. Trigger Background AI Tasks (Crop + Predict)
-    background_tasks.add_task(process_iot_data_background, daily_reading.id)
+    # 5. Trigger Background AI Tasks (Crop + Predict) if image is present
+    if daily_reading.image_path:
+        background_tasks.add_task(process_iot_data_background, daily_reading.id)
 
     return {
         "status": "success",
@@ -232,3 +237,67 @@ def get_tank_history_endpoint(
         raise HTTPException(status_code=404, detail=f"Tank with ID {tank_id} not found")
 
     return get_tank_history(db, tank, days, limit, str(request.base_url))
+
+
+@router.post("/telemetry", response_model=dict)
+def update_telemetry(payload: TelemetryPost, db: Session = Depends(get_db)):
+    """
+    Endpoint for Raspberry Pi to upload high-frequency live sensor readings.
+    Updates the single-row cache for the specified tank.
+    """
+    # 1. Verify Tank exists
+    tank = db.query(TankConfig).filter(TankConfig.id == payload.tank_id).first()
+    if not tank:
+        raise HTTPException(status_code=404, detail=f"Tank with ID {payload.tank_id} not found")
+
+    # 2. Get or create LiveTelemetry entry
+    telemetry = db.query(LiveTelemetry).filter(LiveTelemetry.tank_id == payload.tank_id).first()
+    if not telemetry:
+        telemetry = LiveTelemetry(tank_id=payload.tank_id)
+        db.add(telemetry)
+
+    # 3. Update fields if provided in the payload
+    if payload.ph is not None:
+        telemetry.ph = payload.ph
+    if payload.ec is not None:
+        telemetry.ec = payload.ec
+    if payload.water_temp is not None:
+        telemetry.water_temp = payload.water_temp
+
+    db.commit()
+    return {"status": "success", "message": "Telemetry updated"}
+
+
+@router.get("/telemetry/{tank_id}", response_model=TelemetryResponse)
+def get_live_telemetry(tank_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """
+    Returns the real-time live telemetry readings for a specific tank.
+    """
+    # 1. Verify Tank exists
+    tank = db.query(TankConfig).filter(TankConfig.id == tank_id).first()
+    if not tank:
+        raise HTTPException(status_code=404, detail="Tank configuration not found")
+
+    # 2. Fetch Live Telemetry
+    telemetry = db.query(LiveTelemetry).filter(LiveTelemetry.tank_id == tank_id).first()
+    if not telemetry:
+        # Fallback: check if there's any daily reading
+        latest_reading = db.query(DailyReading).filter(
+            DailyReading.tank_id == tank_id
+        ).order_by(DailyReading.timestamp.desc()).first()
+        
+        if latest_reading:
+            telemetry = LiveTelemetry(
+                tank_id=tank_id,
+                ph=latest_reading.ph,
+                ec=latest_reading.ec,
+                water_temp=latest_reading.water_temp,
+                updated_at=latest_reading.timestamp
+            )
+            db.add(telemetry)
+            db.commit()
+            db.refresh(telemetry)
+        else:
+            raise HTTPException(status_code=404, detail="No telemetry or daily readings found for this tank")
+
+    return telemetry

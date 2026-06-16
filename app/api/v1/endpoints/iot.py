@@ -21,7 +21,7 @@ from app.core.security import get_current_user
 from app.models.user import User
 
 router = APIRouter()
-
+#dri nga part, dri mag request ang mobile ug data (line has 47-147)
 @router.get("/dashboard/{tank_id}", response_model=DashboardResponse)
 def get_tank_dashboard(tank_id: int, request: Request, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """
@@ -145,7 +145,7 @@ def get_tank_dashboard(tank_id: int, request: Request, db: Session = Depends(get
         ),
         alert=alert
     )
-
+#dri nga part, dri magsend ang ioT (line 149-218)
 @router.post("/upload")
 async def upload_iot_data(
     background_tasks: BackgroundTasks,
@@ -217,7 +217,7 @@ def get_tank_alert(tank_id: int, db: Session = Depends(get_db), current_user: Us
 
     return get_tank_alert_status(db, tank)
 
-
+#dri nga part, dri ang kwaon ang history katong sa mobile 
 @router.get("/history/{tank_id}", response_model=HistoryResponse)
 def get_tank_history_endpoint(
     tank_id: int,
